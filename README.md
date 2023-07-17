@@ -1,10 +1,10 @@
 <div>
-  <h1 align="center"><a href="https://kentcdodds.com/workshops">Workshop Title</a></h1>
+  <h1 align="center"><a href="https://kentcdodds.com/workshops">💾 Data Modeling Deep Dive</a></h1>
   <strong>
-    Workshop tagline
+    Model and query your data with confidence
   </strong>
   <p>
-    Workshop summary
+    Learn how to use the Prisma ORM to get a superb experience working with your database.
   </p>
 </div>
 
@@ -22,6 +22,10 @@
   [experience with JavaScript](https://kentcdodds.com/blog/javascript-to-know-for-react)
 - Some [experience with React](https://kcd.im/beginner-react)
 - Some [experience with Node.js](https://nodejs.dev/en/learn)
+- [Full Stack Foundations workshop](https://github.com/epicweb-dev/full-stack-foundations)
+  (or similar experience)
+- [Web Forms workshop](https://github.com/epicweb-dev/web-forms) (or similar
+  experience)
 
 ## System Requirements
 
@@ -51,8 +55,8 @@ network connection before running the setup and grab a snack.
 Follow these steps to get this set up:
 
 ```sh
-git clone https://github.com/epicweb-dev/workshop-template.git
-cd workshop-template
+git clone https://github.com/epicweb-dev/data-modeling.git
+cd data-modeling
 npm run setup
 ```
 
@@ -156,13 +160,13 @@ At the end of the workshop, please go
 [npm]: https://www.npmjs.com/
 [node]: https://nodejs.org
 [git]: https://git-scm.com/
-[build-badge]: https://img.shields.io/github/actions/workflow/status/epicweb-dev/workshop-template/validate.yml?branch=main&logo=github&style=flat-square
-[build]: https://github.com/epicweb-dev/workshop-template/actions?query=workflow%3Avalidate
+[build-badge]: https://img.shields.io/github/actions/workflow/status/epicweb-dev/data-modeling/validate.yml?branch=main&logo=github&style=flat-square
+[build]: https://github.com/epicweb-dev/data-modeling/actions?query=workflow%3Avalidate
 [license-badge]: https://img.shields.io/badge/license-GPL%203.0%20License-blue.svg?style=flat-square
-[license]: https://github.com/epicweb-dev/workshop-template/blob/main/LICENSE
+[license]: https://github.com/epicweb-dev/data-modeling/blob/main/LICENSE
 [coc-badge]: https://img.shields.io/badge/code%20of-conduct-ff69b4.svg?style=flat-square
 [coc]: https://kentcdodds.com/conduct
 [win-path]: https://www.howtogeek.com/118594/how-to-edit-your-system-path-for-easy-command-line-access/
 [mac-path]: http://stackoverflow.com/a/24322978/971592
-[issue]: https://github.com/epicweb-dev/workshop-template/issues/new
+[issue]: https://github.com/epicweb-dev/data-modeling/issues/new
 <!-- prettier-ignore-end -->
