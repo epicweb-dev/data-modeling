@@ -3,5 +3,9 @@
   "exclude": [
     "node_modules"
   ],
-  "references": []
+  "references": [
+    {
+      "path": "exercises/09.finished/01.problem"
+    }
+  ]
 }
