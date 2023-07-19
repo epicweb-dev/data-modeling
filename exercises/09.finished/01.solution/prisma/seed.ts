@@ -280,10 +280,10 @@ async function img({
 }) {
 	const contentType = filepath.endsWith('.png') ? 'image/png' : 'image/jpeg'
 	return {
-		contentType,
 		altText,
 		file: {
 			create: {
+				contentType,
 				blob: await fs.promises.readFile(filepath),
 			},
 		},

@@ -104,7 +104,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 							data: {
 								id: newId,
 								altText: image.altText,
-								file: { update: { blob: blob } },
+								file: { update: { contentType: image.file.type, blob: blob } },
 							},
 						})
 						return { id: newId }
@@ -113,8 +113,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 							select: { id: true },
 							data: {
 								altText: image.altText,
-								contentType: image.file.type,
-								file: { create: { blob } },
+								file: { create: { contentType: image.file.type, blob } },
 							},
 						})
 						return i
@@ -254,7 +253,7 @@ function ImageChooser({
 	const fields = useFieldset(ref, config)
 	const existingImage = Boolean(fields.id.defaultValue)
 	const [previewImage, setPreviewImage] = useState<string | null>(
-		existingImage ? `/resources/images/${fields.id.defaultValue}` : null,
+		existingImage ? `/resources/files/${fields.id.defaultValue}` : null,
 	)
 	const [altText, setAltText] = useState(fields.altText.defaultValue ?? '')
 

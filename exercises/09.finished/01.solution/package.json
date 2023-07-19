@@ -15,7 +15,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@kentcdodds/workshop-app": "^2.2.0",
+    "@kentcdodds/workshop-app": "^2.2.1",
     "@conform-to/react": "^0.7.3",
     "@conform-to/zod": "^0.7.3",
     "@mswjs/data": "^0.13.0",
@@ -82,7 +82,7 @@
     "node": "18"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "npx tsx prisma/seed.ts"
   },
   "eslintIgnore": [
     "/node_modules",

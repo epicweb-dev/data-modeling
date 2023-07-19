@@ -4,7 +4,8 @@ node_modules
 /build
 /public/build
 /server-build
-.env
+# Normally you'd ignore this file, but for the workshop we'll commit it
+# .env
 tsconfig.tsbuildinfo
 *.ignored.*
 

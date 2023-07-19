@@ -38,8 +38,9 @@ model Note {
 }
 
 model File {
-  id   String @id @unique @default(cuid())
-  blob Bytes
+  id          String @id @unique @default(cuid())
+  contentType String
+  blob        Bytes
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,9 +50,8 @@ model File {
 }
 
 model Image {
-  id          String  @unique @default(cuid())
-  contentType String
-  altText     String?
+  id      String  @unique @default(cuid())
+  altText String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

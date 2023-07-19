@@ -29,6 +29,12 @@
       "path": "exercises/01.schema/04.solution.migrations"
     },
     {
+      "path": "exercises/02.seed/01.problem.init"
+    },
+    {
+      "path": "exercises/02.seed/01.solution.init"
+    },
+    {
       "path": "exercises/09.finished/01.solution"
     }
   ]
