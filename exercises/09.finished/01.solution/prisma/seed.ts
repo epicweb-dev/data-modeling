@@ -1,7 +1,8 @@
-import fs from 'fs'
 import { faker } from '@faker-js/faker'
-import { createUser } from 'tests/db-utils.ts'
+import fs from 'fs'
 import { prisma } from '~/utils/db.server.ts'
+
+import { UniqueEnforcer } from 'enforce-unique'
 
 const altTexts = [
 	'a nice country house',
@@ -15,6 +16,33 @@ const altTexts = [
 	'something very happy in nature',
 	`someone at the end of a cry session who's starting to feel a little better.`,
 ]
+
+const uniqueUsernameEnforcer = new UniqueEnforcer()
+
+export function createUser() {
+	const firstName = faker.person.firstName()
+	const lastName = faker.person.lastName()
+
+	const username = uniqueUsernameEnforcer
+		.enforce(() => {
+			return (
+				faker.string.alphanumeric({ length: 5 }) +
+				' ' +
+				faker.internet.userName({
+					firstName: firstName.toLowerCase(),
+					lastName: lastName.toLowerCase(),
+				})
+			)
+		})
+		.slice(0, 20)
+		.toLowerCase()
+		.replace(/[^a-z0-9_]/g, '_')
+	return {
+		username,
+		name: `${firstName} ${lastName}`,
+		email: `${username}@example.com`,
+	}
+}
 
 async function seed() {
 	console.log('🌱 Seeding...')
