@@ -23,5 +23,8 @@ node_modules
 *.local.*
 
 # generated files
-/app/components/ui/icon.svg
-/app/components/ui/icon.tsx
+# Normally these are ignored, but we're committing it so they don't have to be
+# generated on the fly for the workshop
+# We're not changing these duing the workshop anyway
+# /app/components/ui/icon.svg
+# /app/components/ui/icon.tsx
