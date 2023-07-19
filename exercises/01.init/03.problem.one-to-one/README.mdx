@@ -1,0 +1,51 @@
+# One-to-One Relationships
+
+Create File and Image models
+
+```
+npx prisma db push
+```
+
+```
+npx prisma studio
+```
+
+Create a new file in the post:
+
+```tsx
+import fs from 'node:fs'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+
+const fileBlob = await fs.promises.readFile(
+	'./tests/fixtures/images/kody-notes/cute-koala.png',
+)
+
+const newImage = await prisma.image.create({
+	data: {
+		contentType: 'image/png',
+		altText: 'an adorable koala cartoon illustration',
+		file: {
+			create: { blob: fileBlob },
+		},
+	},
+})
+
+const firstNote = await prisma.note.findFirst()
+
+if (!firstNote) {
+	throw new Error('You need to have a note in the database first')
+}
+
+await prisma.note.update({
+	where: { id: firstNote.id },
+	data: {
+		images: {
+			connect: {
+				id: newImage.id,
+			},
+		},
+	},
+})
+```

@@ -5,7 +5,28 @@
   ],
   "references": [
     {
-      "path": "exercises/01.init/01.problem.named"
+      "path": "exercises/01.init/01.problem.init"
+    },
+    {
+      "path": "exercises/01.init/01.solution.init"
+    },
+    {
+      "path": "exercises/01.init/02.problem.one-to-many"
+    },
+    {
+      "path": "exercises/01.init/02.solution.one-to-many"
+    },
+    {
+      "path": "exercises/01.init/03.problem.one-to-one"
+    },
+    {
+      "path": "exercises/01.init/03.solution.one-to-one"
+    },
+    {
+      "path": "exercises/01.init/04.problem.migrations"
+    },
+    {
+      "path": "exercises/01.init/04.solution.migrations"
     },
     {
       "path": "exercises/09.finished/01.solution"

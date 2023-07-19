@@ -1,10 +1,12 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model User {
@@ -20,9 +22,37 @@ model User {
   notes Note[]
 }
 
-model Image {
-  id String @unique @default(cuid())
+model Note {
+  id      String @id @unique @default(cuid())
+  title   String
+  content String
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  ownerId String
+
+  images Image[]
+
+  // our user search orders by recently owners who have recently updated notes
+  // so indexing on the owner ID helps with that (a LOT).
+  @@index([ownerId, updatedAt(sort: Desc)])
+}
+
+model File {
+  id   String @id @unique @default(cuid())
+  blob Bytes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  image   Image  @relation(fields: [imageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  imageId String @unique
+}
+
+model Image {
+  id          String  @unique @default(cuid())
   contentType String
   altText     String?
 
@@ -36,31 +66,4 @@ model Image {
   userId String? @unique
 
   file File?
-}
-
-model File {
-  id   String @id @unique @default(cuid())
-  blob Bytes
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  image     Image    @relation(fields: [imageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  imageId   String   @unique
-}
-
-model Note {
-  id        String   @id @unique @default(cuid())
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  ownerId String
-
-  images Image[]
-
-  // our user search orders by recently owners who have recently updated notes
-  // so indexing on the owner ID helps with that (a LOT).
-  @@index([ownerId, updatedAt(sort: Desc)])
 }
