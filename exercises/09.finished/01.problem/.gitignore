@@ -1,0 +1,27 @@
+node_modules
+.DS_store
+
+/build
+/public/build
+/server-build
+.env
+
+# normally you don't commit your database, but we're doing it here for the workshop
+# /prisma/data.db
+/prisma/data.db-journal
+/tests/prisma
+
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/tests/fixtures/email/
+/coverage
+
+/other/cache.db
+
+# Easy way to create temporary files/folders that won't accidentally be added to git
+*.local.*
+
+# generated files
+/app/components/ui/icon.svg
+/app/components/ui/icon.tsx
