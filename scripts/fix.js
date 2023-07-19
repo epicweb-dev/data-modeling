@@ -52,7 +52,7 @@ const apps = (
 // update the package.json file name property
 // to match the parent directory name + directory name
 // e.g. exercises/01-goo/problem.01-great
-// name: "exercises.01-goo.problem.01-great"
+// name: "exercises__sep__01-goo.problem__sep__01-great"
 
 const relativeToWorkshopRoot = dir =>
 	dir.replace(`${workshopRoot}${path.sep}`, '')
@@ -80,3 +80,5 @@ await fs.promises.writeFile(
 	JSON.stringify(tsconfig, null, 2),
 	{ parser: 'json' },
 )
+
+console.log('all fixed up')
