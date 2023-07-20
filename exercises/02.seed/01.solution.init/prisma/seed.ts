@@ -25,10 +25,9 @@ async function seed() {
 
 	const newImage = await prisma.image.create({
 		data: {
-			contentType: 'image/png',
 			altText: 'an adorable koala cartoon illustration',
 			file: {
-				create: { blob: fileBlob },
+				create: { contentType: 'image/png', blob: fileBlob },
 			},
 		},
 	})
