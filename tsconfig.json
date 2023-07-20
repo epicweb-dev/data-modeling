@@ -35,6 +35,30 @@
       "path": "exercises/02.seed/01.solution.init"
     },
     {
+      "path": "exercises/02.seed/02.problem.nested"
+    },
+    {
+      "path": "exercises/02.seed/02.solution.nested"
+    },
+    {
+      "path": "exercises/02.seed/03.problem.generated"
+    },
+    {
+      "path": "exercises/02.seed/03.solution.generated"
+    },
+    {
+      "path": "exercises/02.seed/04.problem.dynamic"
+    },
+    {
+      "path": "exercises/02.seed/04.solution.dynamic"
+    },
+    {
+      "path": "exercises/02.seed/05.problem.unique"
+    },
+    {
+      "path": "exercises/02.seed/05.solution.unique"
+    },
+    {
       "path": "exercises/09.finished/01.solution"
     }
   ]

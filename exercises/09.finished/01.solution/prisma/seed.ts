@@ -1,21 +1,8 @@
 import { faker } from '@faker-js/faker'
-import fs from 'fs'
-import { prisma } from '~/utils/db.server.ts'
-
 import { UniqueEnforcer } from 'enforce-unique'
-
-const altTexts = [
-	'a nice country house',
-	'a city scape',
-	'a sunrise',
-	'a group of friends',
-	'friends being inclusive of someone who looks lonely',
-	'an illustration of a hot air balloon',
-	'an office full of laptops and other office equipment that look like it was abandond in a rush out of the building in an emergency years ago.',
-	'a rusty lock',
-	'something very happy in nature',
-	`someone at the end of a cry session who's starting to feel a little better.`,
-]
+import fs from 'node:fs'
+import { promiseHash } from 'remix-utils'
+import { prisma } from '~/utils/db.server.ts'
 
 const uniqueUsernameEnforcer = new UniqueEnforcer()
 
@@ -27,7 +14,7 @@ export function createUser() {
 		.enforce(() => {
 			return (
 				faker.string.alphanumeric({ length: 5 }) +
-				' ' +
+				'_' +
 				faker.internet.userName({
 					firstName: firstName.toLowerCase(),
 					lastName: lastName.toLowerCase(),
@@ -44,73 +31,159 @@ export function createUser() {
 	}
 }
 
+async function img({
+	altText,
+	filepath,
+}: {
+	altText?: string
+	filepath: string
+}) {
+	return {
+		altText,
+		file: {
+			create: {
+				contentType: filepath.endsWith('.png') ? 'image/png' : 'image/jpeg',
+				blob: await fs.promises.readFile(filepath),
+			},
+		},
+	}
+}
+
 async function seed() {
 	console.log('🌱 Seeding...')
 	console.time(`🌱 Database has been seeded`)
 
 	console.time('🧹 Cleaned up the database...')
 	await prisma.user.deleteMany()
-	await prisma.image.deleteMany()
 	console.timeEnd('🧹 Cleaned up the database...')
 
 	const totalUsers = 20
 	console.time(`👤 Created ${totalUsers} users...`)
+	const noteImages = await Promise.all([
+		img({
+			altText: 'a nice country house',
+			filepath: './tests/fixtures/images/notes/0.png',
+		}),
+		img({
+			altText: 'a city scape',
+			filepath: './tests/fixtures/images/notes/1.png',
+		}),
+		img({
+			altText: 'a sunrise',
+			filepath: './tests/fixtures/images/notes/2.png',
+		}),
+		img({
+			altText: 'a group of friends',
+			filepath: './tests/fixtures/images/notes/3.png',
+		}),
+		img({
+			altText: 'friends being inclusive of someone who looks lonely',
+			filepath: './tests/fixtures/images/notes/4.png',
+		}),
+		img({
+			altText: 'an illustration of a hot air balloon',
+			filepath: './tests/fixtures/images/notes/5.png',
+		}),
+		img({
+			altText:
+				'an office full of laptops and other office equipment that look like it was abandond in a rush out of the building in an emergency years ago.',
+			filepath: './tests/fixtures/images/notes/6.png',
+		}),
+		img({
+			altText: 'a rusty lock',
+			filepath: './tests/fixtures/images/notes/7.png',
+		}),
+		img({
+			altText: 'something very happy in nature',
+			filepath: './tests/fixtures/images/notes/8.png',
+		}),
+		img({
+			altText: `someone at the end of a cry session who's starting to feel a little better.`,
+			filepath: './tests/fixtures/images/notes/9.png',
+		}),
+	])
+
+	const userImages = await Promise.all(
+		Array.from({ length: 9 }, (_, index) =>
+			img({ filepath: `./tests/fixtures/images/user/${index}.jpg` }),
+		),
+	)
+
 	await Promise.all(
 		Array.from({ length: totalUsers }, async (_, index) => {
-			const userData = createUser()
-			const userCreatedUpdated = getCreatedAndUpdated()
-			const user = await prisma.user.create({
-				select: { id: true },
-				data: {
-					...userData,
-					...userCreatedUpdated,
-					image: {
-						create: await img({
-							filepath: `./tests/fixtures/images/user/${index % 10}.jpg`,
-						}),
-					},
-					notes: {
-						create: await Promise.all(
-							Array.from({
+			const user = await prisma.user
+				.create({
+					select: { id: true },
+					data: {
+						...createUser(),
+						image: { create: userImages[index % 10] },
+						notes: {
+							create: Array.from({
 								length: faker.number.int({ min: 0, max: 3 }),
-							}).map(async () => ({
+							}).map(() => ({
 								title: faker.lorem.sentence(),
 								content: faker.lorem.paragraphs(),
-								...getCreatedAndUpdated(userCreatedUpdated.createdAt),
 								images: {
-									create: await Promise.all(
-										Array.from({
-											length: faker.number.int({ min: 0, max: 5 }),
-										}).map(async () => {
-											const imgNumber = faker.number.int({ min: 0, max: 9 })
-											return img({
-												altText: altTexts[imgNumber],
-												filepath: `./tests/fixtures/images/notes/${imgNumber}.png`,
-											})
-										}),
-									),
+									create: Array.from({
+										length: faker.number.int({ min: 0, max: 5 }),
+									}).map(() => {
+										const imgNumber = faker.number.int({ min: 0, max: 9 })
+										return noteImages[imgNumber]
+									}),
 								},
 							})),
-						),
+						},
 					},
-				},
-			})
+				})
+				.catch(e => {
+					console.error('Error creating a user:', e)
+					return null
+				})
 			return user
 		}),
-	).then(users => users.filter(Boolean))
+	)
 	console.timeEnd(`👤 Created ${totalUsers} users...`)
 
 	console.time(`🐨 Created user "kody"`)
+	const kodyImages = await promiseHash({
+		kodyUser: img({ filepath: './tests/fixtures/images/user/kody.png' }),
+		cuteKoala: img({
+			altText: 'an adorable koala cartoon illustration',
+			filepath: './tests/fixtures/images/kody-notes/cute-koala.png',
+		}),
+		koalaEating: img({
+			altText: 'a cartoon illustration of a koala in a tree eating',
+			filepath: './tests/fixtures/images/kody-notes/koala-eating.png',
+		}),
+		koalaCuddle: img({
+			altText: 'a cartoon illustration of koalas cuddling',
+			filepath: './tests/fixtures/images/kody-notes/koala-cuddle.png',
+		}),
+		mountain: img({
+			altText: 'a beautiful mountain covered in snow',
+			filepath: './tests/fixtures/images/kody-notes/mountain.png',
+		}),
+		koalaCoder: img({
+			altText: 'a koala coding at the computer',
+			filepath: './tests/fixtures/images/kody-notes/koala-coder.png',
+		}),
+		koalaMentor: img({
+			altText:
+				'a koala in a friendly and helpful posture. The Koala is standing next to and teaching a woman who is coding on a computer and shows positive signs of learning and understanding what is being explained.',
+			filepath: './tests/fixtures/images/kody-notes/koala-mentor.png',
+		}),
+		koalaSoccer: img({
+			altText: 'a cute cartoon koala kicking a soccer ball on a soccer field ',
+			filepath: './tests/fixtures/images/kody-notes/koala-soccer.png',
+		}),
+	})
+
 	await prisma.user.create({
 		data: {
 			email: 'kody@kcd.dev',
 			username: 'kody',
 			name: 'Kody',
-			image: {
-				create: await img({
-					filepath: './tests/fixtures/images/user/kody.png',
-				}),
-			},
+			image: { create: kodyImages.kodyUser },
 			notes: {
 				create: [
 					{
@@ -118,19 +191,7 @@ async function seed() {
 						title: 'Basic Koala Facts',
 						content:
 							'Koalas are found in the eucalyptus forests of eastern Australia. They have grey fur with a cream-coloured chest, and strong, clawed feet, perfect for living in the branches of trees!',
-						images: {
-							create: [
-								await img({
-									altText: 'an adorable koala cartoon illustration',
-									filepath: './tests/fixtures/images/kody-notes/cute-koala.png',
-								}),
-								await img({
-									altText: 'a cartoon illustration of a koala in a tree eating',
-									filepath:
-										'./tests/fixtures/images/kody-notes/koala-eating.png',
-								}),
-							],
-						},
+						images: { create: [kodyImages.cuteKoala, kodyImages.koalaEating] },
 					},
 					{
 						id: '414f0c09',
@@ -138,13 +199,7 @@ async function seed() {
 						content:
 							'Cuddly critters, koalas measure about 60cm to 85cm long, and weigh about 14kg.',
 						images: {
-							create: [
-								await img({
-									altText: 'a cartoon illustration of koalas cuddling',
-									filepath:
-										'./tests/fixtures/images/kody-notes/koala-cuddle.png',
-								}),
-							],
+							create: [kodyImages.koalaCuddle],
 						},
 					},
 					{
@@ -159,12 +214,7 @@ async function seed() {
 						content:
 							"Today was an epic day on the slopes! Shredded fresh powder with my friends, caught some sick air, and even attempted a backflip. Can't wait for the next snowy adventure!",
 						images: {
-							create: [
-								await img({
-									altText: 'a beautiful mountain covered in snow',
-									filepath: './tests/fixtures/images/kody-notes/mountain.png',
-								}),
-							],
+							create: [kodyImages.mountain],
 						},
 					},
 					{
@@ -179,13 +229,7 @@ async function seed() {
 						content:
 							"Stuck on a bug in my latest coding project. Need to figure out why my function isn't returning the expected output. Time to dig deep, debug, and conquer this challenge!",
 						images: {
-							create: [
-								await img({
-									altText: 'a koala coding at the computer',
-									filepath:
-										'./tests/fixtures/images/kody-notes/koala-coder.png',
-								}),
-							],
+							create: [kodyImages.koalaCoder],
 						},
 					},
 					{
@@ -194,14 +238,7 @@ async function seed() {
 						content:
 							"Had a fantastic coding mentoring session today with Sarah. Helped her understand the concept of recursion, and she made great progress. It's incredibly fulfilling to help others improve their coding skills.",
 						images: {
-							create: [
-								await img({
-									altText:
-										'a koala in a friendly and helpful posture. The Koala is standing next to and teaching a woman who is coding on a computer and shows positive signs of learning and understanding what is being explained.',
-									filepath:
-										'./tests/fixtures/images/kody-notes/koala-mentor.png',
-								}),
-							],
+							create: [kodyImages.koalaMentor],
 						},
 					},
 					{
@@ -216,12 +253,7 @@ async function seed() {
 						content:
 							'Spent the day hitting the slopes on my skis. The fresh powder made for some incredible runs and breathtaking views. Skiing down the mountain at top speed is an adrenaline rush like no other!',
 						images: {
-							create: [
-								await img({
-									altText: 'a beautiful mountain covered in snow',
-									filepath: './tests/fixtures/images/kody-notes/mountain.png',
-								}),
-							],
+							create: [kodyImages.mountain],
 						},
 					},
 					{
@@ -230,13 +262,7 @@ async function seed() {
 						content:
 							'Participated in a coding competition today and secured the first place! The adrenaline, the challenging problems, and the satisfaction of finding optimal solutions—it was an amazing experience. Feeling proud and motivated to keep pushing my coding skills further!',
 						images: {
-							create: [
-								await img({
-									altText: 'a koala coding at the computer',
-									filepath:
-										'./tests/fixtures/images/kody-notes/koala-coder.png',
-								}),
-							],
+							create: [kodyImages.koalaCoder],
 						},
 					},
 					{
@@ -252,14 +278,7 @@ async function seed() {
 						content:
 							"Just got back from the most amazing game. I've been playing soccer for a long time, but I've not once scored a goal. Well, today all that changed! I finally scored my first ever goal.\n\nI'm in an indoor league, and my team's not the best, but we're pretty good and I have fun, that's all that really matters. Anyway, I found myself at the other end of the field with the ball. It was just me and the goalie. I normally just kick the ball and hope it goes in, but the ball was already rolling toward the goal. The goalie was about to get the ball, so I had to charge. I managed to get possession of the ball just before the goalie got it. I brought it around the goalie and had a perfect shot. I screamed so loud in excitement. After all these years playing, I finally scored a goal!\n\nI know it's not a lot for most folks, but it meant a lot to me. We did end up winning the game by one. It makes me feel great that I had a part to play in that.\n\nIn this team, I'm the captain. I'm constantly cheering my team on. Even after getting injured, I continued to come and watch from the side-lines. I enjoy yelling (encouragingly) at my team mates and helping them be the best they can. I'm definitely not the best player by a long stretch. But I really enjoy the game. It's a great way to get exercise and have good social interactions once a week.\n\nThat said, it can be hard to keep people coming and paying dues and stuff. If people don't show up it can be really hard to find subs. I have a list of people I can text, but sometimes I can't find anyone.\n\nBut yeah, today was awesome. I felt like more than just a player that gets in the way of the opposition, but an actual asset to the team. Really great feeling.\n\nAnyway, I'm rambling at this point and really this is just so we can have a note that's pretty long to test things out. I think it's long enough now... Cheers!",
 						images: {
-							create: [
-								await img({
-									altText:
-										'a cute cartoon koala kicking a soccer ball on a soccer field ',
-									filepath:
-										'./tests/fixtures/images/kody-notes/koala-soccer.png',
-								}),
-							],
+							create: [kodyImages.koalaSoccer],
 						},
 					},
 				],
@@ -269,31 +288,6 @@ async function seed() {
 	console.timeEnd(`🐨 Created user "kody"`)
 
 	console.timeEnd(`🌱 Database has been seeded`)
-}
-
-async function img({
-	altText,
-	filepath,
-}: {
-	altText?: string
-	filepath: string
-}) {
-	const contentType = filepath.endsWith('.png') ? 'image/png' : 'image/jpeg'
-	return {
-		altText,
-		file: {
-			create: {
-				contentType,
-				blob: await fs.promises.readFile(filepath),
-			},
-		},
-	}
-}
-
-function getCreatedAndUpdated(from: Date = new Date(2020, 0, 1)) {
-	const createdAt = faker.date.between({ from, to: new Date() })
-	const updatedAt = faker.date.between({ from: createdAt, to: new Date() })
-	return { createdAt, updatedAt }
 }
 
 seed()

@@ -2,19 +2,23 @@
 
 Create File and Image models
 
+Beware of the extension auto-updating to capital letters in model
+
 ```
 npx prisma db push
 ```
+
+This updated the client automatically
 
 ```
 npx prisma studio
 ```
 
-```
-npx prisma generate
-```
-
 Create a new file in the post:
+
+<InlineFile file="tmp.ignored.js">
+	Click here to create a temporary file
+</InlineFile>
 
 ```tsx
 import fs from 'node:fs'
@@ -22,15 +26,30 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-const fileBlob = await fs.promises.readFile(
-	'./tests/fixtures/images/kody-notes/cute-koala.png',
-)
-
-const newImage = await prisma.image.create({
+const newImage1 = await prisma.image.create({
 	data: {
 		altText: 'an adorable koala cartoon illustration',
 		file: {
-			create: { contentType: 'image/png', blob: fileBlob },
+			create: {
+				contentType: 'image/png',
+				blob: await fs.promises.readFile(
+					'./tests/fixtures/images/kody-notes/cute-koala.png',
+				),
+			},
+		},
+	},
+})
+
+const newImage2 = await prisma.image.create({
+	data: {
+		altText: 'a cartoon illustration of a koala in a tree eating',
+		file: {
+			create: {
+				contentType: 'image/png',
+				blob: await fs.promises.readFile(
+					'./tests/fixtures/images/kody-notes/koala-eating.png',
+				),
+			},
 		},
 	},
 })
@@ -45,12 +64,14 @@ await prisma.note.update({
 	where: { id: firstNote.id },
 	data: {
 		images: {
-			connect: {
-				id: newImage.id,
-			},
+			connect: [{ id: newImage1.id }, { id: newImage2.id }],
 		},
 	},
 })
+```
+
+```
+node ./tmp.ignored.js
 ```
 
 ```
