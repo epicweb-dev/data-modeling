@@ -11,52 +11,52 @@
       "path": "exercises/01.schema/01.solution.init"
     },
     {
-      "path": "exercises/01.schema/02.problem.one-to-many"
+      "path": "exercises/02.relationships/01.problem.one-to-many"
     },
     {
-      "path": "exercises/01.schema/02.solution.one-to-many"
+      "path": "exercises/02.relationships/01.solution.one-to-many"
     },
     {
-      "path": "exercises/01.schema/03.problem.one-to-one"
+      "path": "exercises/02.relationships/02.problem.one-to-one"
     },
     {
-      "path": "exercises/01.schema/03.solution.one-to-one"
+      "path": "exercises/02.relationships/02.solution.one-to-one"
     },
     {
-      "path": "exercises/01.schema/04.problem.migrations"
+      "path": "exercises/03.migrations/01.problem.migrations"
     },
     {
-      "path": "exercises/01.schema/04.solution.migrations"
+      "path": "exercises/03.migrations/01.solution.migrations"
     },
     {
-      "path": "exercises/02.seed/01.problem.init"
+      "path": "exercises/04.seed/01.problem.init"
     },
     {
-      "path": "exercises/02.seed/01.solution.init"
+      "path": "exercises/04.seed/01.solution.init"
     },
     {
-      "path": "exercises/02.seed/02.problem.nested"
+      "path": "exercises/04.seed/02.problem.nested"
     },
     {
-      "path": "exercises/02.seed/02.solution.nested"
+      "path": "exercises/04.seed/02.solution.nested"
     },
     {
-      "path": "exercises/02.seed/03.problem.generated"
+      "path": "exercises/05.generated/01.problem.generated"
     },
     {
-      "path": "exercises/02.seed/03.solution.generated"
+      "path": "exercises/05.generated/01.solution.generated"
     },
     {
-      "path": "exercises/02.seed/04.problem.dynamic"
+      "path": "exercises/05.generated/02.problem.dynamic"
     },
     {
-      "path": "exercises/02.seed/04.solution.dynamic"
+      "path": "exercises/05.generated/02.solution.dynamic"
     },
     {
-      "path": "exercises/02.seed/05.problem.unique"
+      "path": "exercises/05.generated/03.problem.unique"
     },
     {
-      "path": "exercises/02.seed/05.solution.unique"
+      "path": "exercises/05.generated/03.solution.unique"
     },
     {
       "path": "exercises/09.finished/01.solution"
