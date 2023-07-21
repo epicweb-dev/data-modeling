@@ -179,6 +179,7 @@ async function seed() {
 	})
 
 	await prisma.user.create({
+		select: { id: true },
 		data: {
 			email: 'kody@kcd.dev',
 			username: 'kody',

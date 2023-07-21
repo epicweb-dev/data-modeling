@@ -59,6 +59,30 @@
       "path": "exercises/05.generated/03.solution.unique"
     },
     {
+      "path": "exercises/06.querying/01.problem.client"
+    },
+    {
+      "path": "exercises/06.querying/01.solution.client"
+    },
+    {
+      "path": "exercises/06.querying/02.problem.select"
+    },
+    {
+      "path": "exercises/06.querying/02.solution.select"
+    },
+    {
+      "path": "exercises/06.querying/03.problem.nested-select"
+    },
+    {
+      "path": "exercises/06.querying/03.solution.nested-select"
+    },
+    {
+      "path": "exercises/07.updating/01.problem.delete"
+    },
+    {
+      "path": "exercises/07.updating/01.solution.delete"
+    },
+    {
       "path": "exercises/09.finished/01.solution"
     }
   ]
