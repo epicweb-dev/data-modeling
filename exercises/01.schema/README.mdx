@@ -1,3 +1,194 @@
 # Database Schema
 
-TODO: Write about database schemas
+SQLite uses SQL for querying the database. SQL stands for Structured Query
+Language and is a language used to communicate with the most widely used
+databases.
+
+A primitive concept in SQL is a table. A table is a collection of rows and
+columns. Each row represents a single entity, and each column represents a
+property of that entity.
+
+Here's an example of SQL to create the SQLite tables for an application (don't
+bother reading into this too much just yet, skim over it):
+
+```sql nocopy
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "email" TEXT NOT NULL,
+    "username" TEXT NOT NULL,
+    "name" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+CREATE TABLE "Sandwich" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "price" REAL NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+CREATE TABLE "Order" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "status" TEXT NOT NULL, -- For example: "Preparing", "Ready", "Delivered"
+    CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "OrderItem" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "orderId" TEXT NOT NULL,
+    "sandwichId" TEXT NOT NULL,
+    "quantity" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "OrderItem_sandwichId_fkey" FOREIGN KEY ("sandwichId") REFERENCES "Sandwich" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE "Ingredient" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+CREATE TABLE "SandwichIngredient" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "sandwichId" TEXT NOT NULL,
+    "ingredientId" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "SandwichIngredient_sandwichId_fkey" FOREIGN KEY ("sandwichId") REFERENCES "Sandwich" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "SandwichIngredient_ingredientId_fkey" FOREIGN KEY ("ingredientId") REFERENCES "Ingredient" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+```
+
+I used to be a Business Intelligence engineer, so this was a common sight for
+me, but to be honest, I'm not super jazzed to see it again 😆 Especially when
+you consider the desire to change things over time (migrate the database).
+
+## Prisma
+
+This is where [Prisma](https://www.prisma.io) comes in really handy. Prisma is a
+suite of tools that allow you to manage your database and communicate with it
+more easily in your JavaScript application.
+
+One feature of Prisma is the ORM which stands for "Object Relational Mapper".
+This allows you to interact with your database using JavaScript objects and
+function calls instead of SQL. (🦺 And the best part is it's all typesafe!).
+We'll get to that part later on in the workshop though.
+
+### Prisma Schema
+
+Another feature of Prisma is its schema language. This is a language that
+allows you to define your database schema in a way that is more human readable
+and easier to manage than SQL. It allows you to define relationships between
+tables, and it allows you to define the types of each column. It also helps you
+to manage migrations (changes in the schema, which we'll get to later).
+
+Here's how you'd define the schema for that same database in Prisma:
+
+```prisma filename=prisma/schema.prisma nocopy
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model Sandwich {
+  id                  String               @id @default(uuid())
+  name                String
+  description         String
+  price               Float
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  orderItems          OrderItem[]
+  sandwichIngredients SandwichIngredient[]
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  status     String
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  quantity   Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id])
+  sandwichId String
+  sandwich   Sandwich @relation(fields: [sandwichId], references: [id])
+}
+
+model Ingredient {
+  id                  String               @id @default(uuid())
+  name                String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  sandwichIngredients SandwichIngredient[]
+}
+
+model SandwichIngredient {
+  id           String     @id @default(uuid())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  sandwichId   String
+  sandwich     Sandwich   @relation(fields: [sandwichId], references: [id])
+  ingredientId String
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+}
+```
+
+This will also automatically create critical indexes on the tables to improve
+typical query performance.
+
+### Prisma CLI
+
+Another feature of Prisma is a CLI that you can use to manage your database with
+your schema. So you can concert this schema into SQL and run it against your
+database to create the tables. You can also use it to generate the ORM client.
+
+To generate the SQL and run it on your database, you'll run:
+
+```sh nonumber
+npx prisma db push
+```
+
+And if you already have a database, you can go the reverse direction: generate
+the schema from the database:
+
+```sh nonumber
+npx prisma db pull
+```
+
+There's much more to it all, but let's get started with this first.
+
+### Prisma Studio
+
+Another great feature of Prisma is the ability to view and edit your database
+using a web interface. This is called Prisma Studio. You can run it with:
+
+```sh nonumber
+npx prisma studio
+```
+
+This will open your browser in a special web app for exploring your database
+model.
+
+- [📜 Prisma Schema docs](https://www.prisma.io/docs/concepts/components/prisma-schema)

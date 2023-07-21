@@ -1,14 +1,37 @@
 # 💾 Data Modeling Deep Dive
 
-## Prisma Tips:
+👨‍💼 Hello, my name is Peter the Product Manager. I'm here to help you get
+oriented and to give you your assignments for the day. We're going to have you
+working on the data for Epic Notes app today.
 
-- If your database ever gets in a bad state, you can always delete the database
-  file itself and prisma will recreate it for you next time you run something.
-- [Configure the logs](https://www.prisma.io/docs/concepts/components/prisma-client/working-with-prismaclient/logging)
-  to enable `query` and other logs and see the SQL queries that Prisma generates
-  and other information.
-  ```ts highlight=2
-  const prisma = new PrismaClient({
-  	log: ['query', 'info', 'warn', 'error'],
-  })
-  ```
+So far our data has just lived in memory but we're finally ready to start
+persisting things to a database. We've decided to use SQLite for our database
+and Prisma as our ORM. You're going to need to get that all set up. Just as if
+you had been hired to work with us today. Throughout the workshop, you'll learn
+important foundational skills of full stack development like:
+
+1. Creating a Database Schema
+2. Managing Data Relationships
+3. Managing Data Migrations
+4. Seeding Data
+5. Generating Seed Data
+6. Querying Data
+7. Updating Data
+8. Writing Raw SQL
+9. Optimizing your models for query performance
+
+It's a big job and there's lots to do, so, let's get started!
+
+<callout-danger>
+  You'll be running a lot of terminal commands in this workshop. These terminal
+  commands need to be run from the `playground` directory of the project. Any
+  exceptions will be noted.
+</callout-danter>
+
+## 🦉 Prisma Tips:
+
+- If your development database ever gets in a bad state, you can always delete
+  the database file itself and prisma will recreate it for you next time you run
+  something. (Note that you'll lose all your data if you do this, but we're
+  working with fake data anyway so it's fine... Just don't do this with your
+  production database 😅).
