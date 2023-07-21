@@ -96,28 +96,22 @@ export async function action({ request, params }: DataFunctionArgs) {
 				if (image.file.size > 0) {
 					console.log('file has been uploaded')
 					const blob = Buffer.from(await image.file.arrayBuffer())
-					if (image.id) {
-						const newId = cuid()
-						await $prisma.image.update({
-							select: { id: true },
-							where: { id: image.id },
-							data: {
-								id: newId,
-								altText: image.altText,
-								file: { update: { contentType: image.file.type, blob: blob } },
-							},
-						})
-						return { id: newId }
-					} else {
-						const i = await $prisma.image.create({
-							select: { id: true },
-							data: {
-								altText: image.altText,
-								file: { create: { contentType: image.file.type, blob } },
-							},
-						})
-						return i
-					}
+					return await $prisma.image.upsert({
+						// use cuid() as a fallback to meet the `where` requirements
+						// without matching any records
+						where: { id: image.id ?? cuid() },
+						select: { id: true },
+						create: {
+							altText: image.altText,
+							file: { create: { contentType: image.file.type, blob } },
+						},
+						update: {
+							// update the id since it is used for caching
+							id: cuid(),
+							altText: image.altText,
+							file: { update: { contentType: image.file.type, blob: blob } },
+						},
+					})
 				} else if (image.id) {
 					return await $prisma.image.update({
 						select: { id: true },
