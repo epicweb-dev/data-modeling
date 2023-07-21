@@ -97,9 +97,9 @@ export async function action({ request, params }: DataFunctionArgs) {
 					console.log('file has been uploaded')
 					const blob = Buffer.from(await image.file.arrayBuffer())
 					return await $prisma.image.upsert({
-						// use cuid() as a fallback to meet the `where` requirements
+						// use a fake ID as a fallback to meet the `where` requirements
 						// without matching any records
-						where: { id: image.id ?? cuid() },
+						where: { id: image.id ?? '__does_not_exist__' },
 						select: { id: true },
 						create: {
 							altText: image.altText,
