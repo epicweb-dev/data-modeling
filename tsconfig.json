@@ -83,6 +83,24 @@
       "path": "exercises/07.updating/01.solution.delete"
     },
     {
+      "path": "exercises/07.updating/02.problem.update"
+    },
+    {
+      "path": "exercises/07.updating/02.solution.update"
+    },
+    {
+      "path": "exercises/07.updating/03.problem.upsert"
+    },
+    {
+      "path": "exercises/07.updating/03.solution.upsert"
+    },
+    {
+      "path": "exercises/07.updating/04.problem.transactions"
+    },
+    {
+      "path": "exercises/07.updating/04.solution.transactions"
+    },
+    {
       "path": "exercises/09.finished/01.solution"
     }
   ]

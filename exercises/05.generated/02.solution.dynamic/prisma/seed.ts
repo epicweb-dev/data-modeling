@@ -1,6 +1,6 @@
-import fs from 'node:fs'
 import { faker } from '@faker-js/faker'
 import { PrismaClient } from '@prisma/client'
+import fs from 'node:fs'
 import { promiseHash } from 'remix-utils'
 
 const prisma = new PrismaClient()
@@ -193,9 +193,3 @@ seed()
 	.finally(async () => {
 		await prisma.$disconnect()
 	})
-
-// 💣 you can remove this when you're done with this step if you like
-/*
-eslint
-	@typescript-eslint/no-unused-vars: "off",
-*/
