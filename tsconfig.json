@@ -101,7 +101,34 @@
       "path": "exercises/07.updating/04.solution.transactions"
     },
     {
-      "path": "exercises/09.finished/01.solution"
+      "path": "exercises/08.sql/01.problem.sql"
+    },
+    {
+      "path": "exercises/08.sql/01.solution.sql"
+    },
+    {
+      "path": "exercises/08.sql/02.problem.validation"
+    },
+    {
+      "path": "exercises/08.sql/02.solution.validation"
+    },
+    {
+      "path": "exercises/08.sql/03.problem.join"
+    },
+    {
+      "path": "exercises/08.sql/03.solution.join"
+    },
+    {
+      "path": "exercises/08.sql/04.problem.order"
+    },
+    {
+      "path": "exercises/08.sql/04.solution.order"
+    },
+    {
+      "path": "exercises/09.optimize/01.problem"
+    },
+    {
+      "path": "exercises/09.optimize/01.solution"
     }
   ]
 }

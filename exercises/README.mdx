@@ -1,1 +1,14 @@
 # 💾 Data Modeling Deep Dive
+
+## Prisma Tips:
+
+- If your database ever gets in a bad state, you can always delete the database
+  file itself and prisma will recreate it for you next time you run something.
+- [Configure the logs](https://www.prisma.io/docs/concepts/components/prisma-client/working-with-prismaclient/logging)
+  to enable `query` and other logs and see the SQL queries that Prisma generates
+  and other information.
+  ```ts highlight=2
+  const prisma = new PrismaClient({
+  	log: ['query', 'info', 'warn', 'error'],
+  })
+  ```

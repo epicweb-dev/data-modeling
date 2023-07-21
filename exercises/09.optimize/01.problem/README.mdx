@@ -1,0 +1,233 @@
+# Query Optimization
+
+Show the explain for a simple query:
+
+Scan means: Reading every record one at a time. Can be CPU/Memory intensive.
+
+```sql
+EXPLAIN QUERY PLAN
+   ...> SELECT user.id, user.username, user.name
+   ...> FROM User AS user;
+QUERY PLAN
+`--SCAN user
+```
+
+Scan user because we need it all!
+
+```sql
+EXPLAIN QUERY PLAN
+   ...> SELECT user.id, user.username, user.name
+   ...> FROM User AS user
+   ...> LIMIT 50;
+QUERY PLAN
+`--SCAN user
+```
+
+Scan on user with no index because no where clause.
+
+```sql
+EXPLAIN QUERY PLAN
+   ...> SELECT user.id, user.username, user.name
+   ...> FROM User AS user
+   ...> ORDER BY user.username
+   ...> LIMIT 50;
+QUERY PLAN
+`--SCAN user USING INDEX User_username_key
+```
+
+Scan with an index because of the order by
+
+```sql
+sqlite> EXPLAIN QUERY PLAN
+   ...> SELECT user.id, user.username, user.name
+   ...> FROM User AS user
+   ...> ORDER BY user.name
+   ...> LIMIT 50;
+QUERY PLAN
+|--SCAN user
+`--USE TEMP B-TREE FOR ORDER BY
+```
+
+Scan with no index because of the order by is on a non-indexed column.
+
+```sql
+EXPLAIN QUERY PLAN
+   ...> SELECT user.id, user.username, user.name
+   ...> FROM User AS user
+   ...> LEFT JOIN Image AS image ON user.id = image.userId
+   ...> ORDER BY user.username
+   ...> LIMIT 50;
+QUERY PLAN
+`--SCAN user USING INDEX User_username_key
+```
+
+```sql
+EXPLAIN QUERY PLAN
+   ...> SELECT user.id, user.username, user.name, image.id
+   ...> FROM User AS user
+   ...> LEFT JOIN Image AS image ON user.id = image.userId
+   ...> ORDER BY user.username
+   ...> LIMIT 50;
+QUERY PLAN
+|--SCAN user USING INDEX User_username_key
+`--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+```
+
+Search on image using an index because the `ON` predicate is on the indexed
+column.
+
+```sql
+EXPLAIN QUERY PLAN
+   ...> SELECT user.id, user.username, user.name, image.id
+   ...> FROM User AS user
+   ...> LEFT JOIN Image AS image ON user.id = image.userId
+   ...> WHERE user.username LIKE '%kody%'
+   ...> ORDER BY user.username
+   ...> LIMIT 50;
+QUERY PLAN
+|--SCAN user USING INDEX User_username_key
+`--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+```
+
+Whoops! It is using a index for the `ORDER BY`, but it's not telling us that
+it's likely note using an index for the `LIKE` (according to
+[the rules](https://www.sqlite.org/optoverview.html#the_like_optimization)).
+
+```sql
+EXPLAIN QUERY PLAN
+   ...> SELECT user.id, user.username, user.name, image.id
+   ...> FROM User AS user
+   ...> LEFT JOIN Image AS image ON user.id = image.userId
+   ...> WHERE user.username LIKE '%kody%'
+   ...> OR user.name LIKE '%kody%'
+   ...> ORDER BY user.username
+   ...> LIMIT 50;
+QUERY PLAN
+|--SCAN user USING INDEX User_username_key
+`--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+```
+
+It's still leverage the index for the `ORDER BY`, but it's not telling us that
+it's likely note using an index for the `LIKE`.
+
+```sql
+EXPLAIN QUERY PLAN
+   ...> SELECT user.id, user.username, user.name, image.id
+   ...> FROM User AS user
+   ...> LEFT JOIN Image AS image ON user.id = image.userId
+   ...> WHERE user.username LIKE '%kody%'
+   ...> OR user.name LIKE '%kody%'
+   ...> ORDER BY (
+   ...>   SELECT updatedAt
+   ...>   FROM Note
+   ...>   WHERE ownerId = user.id
+   ...>   ORDER BY updatedAt DESC
+   ...>   LIMIT 1
+   ...> ) DESC
+   ...> LIMIT 50;
+QUERY PLAN
+|--SCAN user
+|--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+|--CORRELATED SCALAR SUBQUERY 1
+|  |--SCAN Note
+|  `--USE TEMP B-TREE FOR ORDER BY
+`--USE TEMP B-TREE FOR ORDER BY
+```
+
+Now explain is showing that we're scanning because there's no index in use on
+the user table (it was scanning the whole time silly). But, it's now also
+showing a scan on the note, and because that's a subquery, that scan will happen
+for _every user_ 😱. Very very bad.
+
+We look at the `WHERE` and the `ORDER BY` to determine our indexes. We're
+referencing the `updatedAt` in the `ORDER BY` and the `owerId` in the `WHERE`.
+We need to combine these columns in a single index to optimize this query.
+
+<callout-info>
+	Keep in mind that indexes aren't free and take disk space. Writing to a table
+	with an index will take a bit more time because the index needs to be updated.
+	In a web app, this normally doesn't make a difference, but if you're doing.
+	Also the amount of disk space is depends on a lot of factors, but you can
+	mostly think of it as the combined space of the contents of those fields.
+</callout-info>
+
+<callout-success>
+	Lean on indexes for web apps. Most of the time, you'll be reading more than
+	writing, and disk space is cheap so the trade off is worth it.
+</callout-success>
+
+TODO: insert photo example here
+
+Typically it's best to start with the `WHERE` clause and then add the `ORDER BY`
+columns to the end of the index.
+
+<details>
+
+<summary>Dive deep on multiple wheres</summary>
+
+If you have multiple where clauses, sort them by the "bigger buckets" first.
+
+TODO: elaborate...
+
+</details>
+
+So, let's sort first by the `ownerId` and then by the `updatedId`.
+
+Open up the `prisma/schema.prisma` file and add the following index to the
+`Note` model:
+
+```prisma
+model Note {
+  // ...
+
+  @@index([ownerId, updatedAt])
+}
+```
+
+Then run:
+
+```
+npx prisma db deploy
+```
+
+<callout-warning>
+	Remember, this does not update your migration file. You'll want to do that
+	when you're ready to commit to this. We're just testing things out for now.
+</callout-warning>
+
+Now, let's run the query again:
+
+```sql
+EXPLAIN QUERY PLAN
+   ...> SELECT user.id, user.username, user.name, image.id
+   ...> FROM User AS user
+   ...> LEFT JOIN Image AS image ON user.id = image.userId
+   ...> WHERE user.username LIKE '%kody%'
+   ...> OR user.name LIKE '%kody%'
+   ...> ORDER BY (
+   ...>   SELECT updatedAt
+   ...>   FROM Note
+   ...>   WHERE ownerId = user.id
+   ...>   ORDER BY updatedAt DESC
+   ...>   LIMIT 1
+   ...> ) DESC
+   ...> LIMIT 50;
+QUERY PLAN
+|--SCAN user
+|--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+|--CORRELATED SCALAR SUBQUERY 1
+|  `--SEARCH Note USING COVERING INDEX Note_ownerId_updatedAt_idx (ownerId=?)
+`--USE TEMP B-TREE FOR ORDER BY
+```
+
+Sweet! We've just eliminated the Scan on the Note table and replaced it with a
+Search. This is a huge win because the Search is now using an index, which so
+our query doesn't have to read every note for every user!
+
+<details>
+
+<summary>Incidental Covering Index</summary>
+
+TODO: elaborate...
+
+</details>
