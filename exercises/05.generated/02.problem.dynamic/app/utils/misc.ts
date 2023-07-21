@@ -6,7 +6,7 @@ import { twMerge } from 'tailwind-merge'
 import userFallback from '~/assets/user.png'
 
 export function getUserImgSrc(imageId?: string | null) {
-	return imageId ? `/resources/files/${imageId}` : userFallback
+	return imageId ? `/resources/images/${imageId}` : userFallback
 }
 
 export function getErrorMessage(error: unknown) {

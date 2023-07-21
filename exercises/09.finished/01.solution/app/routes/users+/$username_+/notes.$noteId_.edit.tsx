@@ -253,7 +253,7 @@ function ImageChooser({
 	const fields = useFieldset(ref, config)
 	const existingImage = Boolean(fields.id.defaultValue)
 	const [previewImage, setPreviewImage] = useState<string | null>(
-		existingImage ? `/resources/files/${fields.id.defaultValue}` : null,
+		existingImage ? `/resources/images/${fields.id.defaultValue}` : null,
 	)
 	const [altText, setAltText] = useState(fields.altText.defaultValue ?? '')
 
