@@ -1,1 +1,110 @@
 # Data Relationships
+
+Models in a database often have relationships, like like objects in our code or
+even things in real life. There are a few types of relationships. We'll talk
+about three of the most common:
+
+## [One-to-one](https://www.prisma.io/docs/concepts/components/prisma-schema/relations/one-to-one-relations)
+
+A person has one social security number, a social security number belongs to one
+person. Here's an example of how that could be represented in prisma.
+
+```prisma
+model Person {
+  id             String          @unique @default(cuid())
+  name           String
+  socialSecurity SocialSecurity?
+}
+
+model SocialSecurity {
+  id       String  @unique @default(cuid())
+  number   String
+  person   Person @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  personId String @unique
+}
+```
+
+You'll notice the `@relation` attribute on the `SocialSecurity` model. This
+configures the relationship between the two models with
+[referential actions](https://www.prisma.io/docs/concepts/components/prisma-schema/relations/referential-actions).
+
+The `fields` argument specifies which fields in the model are used to refer to
+the other model. The `references` argument specifies which fields in the other
+model are used to refer to this model. The `personId` field is used to refer to
+the `Person` model and is called a _foreign key_.
+
+The `onDelete` and `onUpdate` arguments specify what happens when the referenced
+model is deleted or updated. In this case, we're saying that if a `Person` is
+deleted or updated, the `SocialSecurity` should be deleted or updated as well.
+
+## [One-to-many](https://www.prisma.io/docs/concepts/components/prisma-schema/relations/one-to-many-relations)
+
+A person has many phone numbers, a phone number belongs to one person. For
+example:
+
+```prisma
+model Person {
+  id           String        @unique @default(cuid())
+  name         String
+  phoneNumbers PhoneNumber[]
+}
+
+model PhoneNumber {
+  id       String @unique @default(cuid())
+  number   String
+  person   Person @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  personId String
+}
+```
+
+In this case, the biggest difference is that the `personId` field is not
+declared as `@unique`. This is because a person can have many phone numbers, so
+the same `personId` can appear multiple times in the `PhoneNumber` model.
+And on the `Person` model, the `phoneNumbers` field is declared as an array of
+`PhoneNumber` models, because a person can have many phone numbers.
+
+## [Many-to-many](https://www.prisma.io/docs/concepts/components/prisma-schema/relations/many-to-many-relations)
+
+A blog post has many tags, a tag has many blog posts. For example:
+
+```prisma
+model Post {
+  id    String      @unique @default(cuid())
+  title String
+  tags  TagOnPost[]
+}
+
+model Tag {
+  id    String      @unique @default(cuid())
+  name  String
+  posts TagOnPost[]
+}
+
+model TagOnPost {
+  tagId  String
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+  tag    Tag    @relation(fields: [tagId], references: [id])
+
+  @@id([postId, tagId])
+}
+```
+
+In this case, we have a third model called `TagOnPost` that represents the
+relationship between `Post` and `Tag`. This model has two foreign keys, one for
+`Post` and one for `Tag`. The `@@id` attribute specifies that the combination of
+`postId` and `tagId` should be unique. This is also called a _composite key_.
+
+## Visualizing relationships
+
+Sometimes it can be helpful to represent these relationships visually.
+Especially for very complex relationships. This is often done using an _entity
+relationship diagram_ or ERD.
+[Learn more about ERDs](https://en.wikipedia.org/wiki/Entity%E2%80%93relationship_model).
+
+You can even use the [prisma-erd-generator](https://github.com/keonik/prisma-erd-generator)
+to generate an ERD from your prisma schema. For example:
+
+[![An ERD showing relationships for the Epic Notes app.](https://github-production-user-asset-6210df.s3.amazonaws.com/1500684/255297558-8c4b991a-aca0-44dc-9fb9-8ad4abe9e267.svg)](https://github-production-user-asset-6210df.s3.amazonaws.com/1500684/255297558-8c4b991a-aca0-44dc-9fb9-8ad4abe9e267.svg)
+
+- [📜 Prisma Schema Reference](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference)

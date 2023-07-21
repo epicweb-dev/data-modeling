@@ -15,7 +15,7 @@ import {
 	type DataFunctionArgs,
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import cuid from 'cuid'
+import { createId as cuid } from '@paralleldrive/cuid2'
 import { useRef, useState } from 'react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
