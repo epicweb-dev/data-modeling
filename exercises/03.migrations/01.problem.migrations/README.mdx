@@ -1,11 +1,31 @@
 # Migrations
 
+👨‍💼 Alright, let's get our migration file generated.
+
+🐨 Run the following command:
+
 ```sh
 npx prisma migrate dev
 ```
 
-It will ask to delete data. Say "yes"
+It will ask if you want to delete data. Say "yes" (we're going to generate it
+all anyway).
 
-Call it "init"
+It will ask you what to call the migration. I call the first migration "init".
 
-Updates the database, all data is gone, we'll get it back next.
+Now check your `prisma/migrations` folder and you'll see the new file there. The
+migration file is in a directory named after the timestamp of when it was
+created and the name you provided. This is so that Prisma can keep track of the
+order of migrations.
+
+You'll also notice <InlineFile file="prisma/migrations/migration_lock.toml" />.
+Prisma uses this to make sure you don't change the database provider. Prisma
+doesn't support changing from Postgres to SQLite as part of a migration. If you
+want to do that, it's
+[a little more involved](https://www.prisma.io/docs/concepts/components/prisma-migrate/prisma-migrate-limitations-issues#you-cannot-automatically-switch-database-providers)
+(though easier than it should be thanks to Prisma). I have done this and it went
+really well:
+[I Migrated from a Postgres Cluster to Distributed SQLite with LiteFS](https://kentcdodds.com/blog/i-migrated-from-a-postgres-cluster-to-distributed-sqlite-with-litefs)
+
+- [📜 Prisma Migrate Getting Started Docs](https://www.prisma.io/docs/concepts/components/prisma-migrate/get-started)
+- [📜 Prisma Migrate: About History](https://www.prisma.io/docs/concepts/components/prisma-migrate/migration-histories)

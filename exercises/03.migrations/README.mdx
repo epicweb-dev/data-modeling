@@ -1,1 +1,150 @@
 # Data Migrations
+
+It's great that Prisma allows us to easily represent our database models and
+their relationships in a `schema.prisma` file. And we can easily make our
+database just look like our schema by running `npx prisma db push`. But what
+if we make a "breaking schema change" that requires us to migrate our data?
+
+Let's talk about what I mean by "breaking schema change". Let's say we have a
+sandwich ordering shop, like in the example from the first exercise. Here's the
+order model:
+
+```prisma nocopy
+model Order {
+  id         String      @id @default(uuid())
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  status     String
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+}
+```
+
+What if we decided to add a `Reviews` model and have reviews on the order?
+That's a pretty straightforward change using the knowledge we've accumulated so
+far. Simply create the `Reviews` model and add it to the order model:
+
+```prisma nocopy add=9,12-20
+model Order {
+  id         String      @id @default(uuid())
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  status     String
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+  reviews    Review[]
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  rating    Int
+  text      String?
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+```
+
+We can `npx prisma db push` this change with no issues.
+
+But let's look a the `User` model:
+
+```prisma nocopy
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+```
+
+What if we decided we wanted to make the `name` required? Or what if we decided
+we want to make the `username` unique? These are "breaking schema changes" which
+necessitate a data migration.
+
+Managing these data migrations is tricky business and often involves custom SQL
+or an intrusive ORM that may not quite fit with what you need done so you end up
+having to workaround the limitations.
+
+Prisma takes the middle ground approach. Instead of completely hiding the
+details of the migration, Prisma generates the SQL for the migration and saves
+it to disk. From there you are free to alter it as needed.
+
+This SQL file should be committed to your git repository and deployed alongside
+your app. That way you can track database changes over time. Prisma will also
+keep track of which migrations have been applied to your database so you don't
+have to worry about that. (It creates a very small table in your database for
+this). So when you deploy your app, you simply run `npx prisma migrate deploy`
+and Prisma will take care of the rest.
+
+## Example
+
+I've found this to be helpful in my own work. As a personal example, on
+[kentcdodds.com](https://kentcdodds.com) I have user accounts and originally I
+had my user roles field optional. I later realized this didn't work well for me,
+so I decided to switch it to a required field. I couldn't just
+`npx prisma db push` this change because I already had users who didn't have an
+assigned `role`.
+
+So I created a migration to make the `role` field required and default to
+`MEMBER`. But then I modified the SQL to set the `role` to `MEMBER` for all
+users and then updated the `role` field for my own membership to `ADMIN`.
+[Here's the migration file](https://github.com/kentcdodds/kentcdodds.com/blob/df747c1583000f0f780b21d53efe819c38088893/prisma/migrations/20210608020151_user_roles/migration.sql):
+
+```sql nocopy
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'MEMBER');
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "role" "Role" DEFAULT E'MEMBER';
+
+-- Manually written stuff:
+
+-- Update all users to be members:
+update "User" set role = E'MEMBER';
+
+-- update me@kentcdodds.com to be ADMIN:
+update "User" set role = E'ADMIN' where email = 'me@kentcdodds.com';
+
+-- make role required
+ALTER TABLE "User" ALTER COLUMN "role" SET NOT NULL;
+```
+
+And because I had prisma migrations set up to run whenever I deploy new code
+changes I got everything updated and working as expected.
+
+However, I could have had some issues if I had users signing up while I was
+deploying this change. I would have had to do some extra work to make sure that
+I didn't lose any data.
+
+🦉 If you're curious what a migration directory looks like after a few
+migrations, check
+[the migrations directory of kentcdodds.com](https://github.com/kentcdodds/kentcdodds.com/tree/df747c1583000f0f780b21d53efe819c38088893/prisma/migrations).
+
+## Zero Downtime Migrations
+
+At scale, dealing with migrations can be a little tricky. With lots of data and
+big changes, migrations can take a lot of time. We don't want to pull down our
+website while we're deploying a migration. But we also don't want to deploy a
+version of our app that doesn't work with the data in the database.
+
+This is where the practice of "widen then narrow" comes in. The idea is that you
+make your database schema more permissive, deploy your app, then make your
+database schema more restrictive. For more on this subject, check out
+[the Epic Stack database migrations docs](https://github.com/epicweb-dev/epic-stack/blob/main/docs/database-migrations.md).
+
+## When to use Migrate vs Push
+
+The short answer is you use `push` when you're experimenting with schema changes
+and `migrate` when you're ready to commit to a schema change.
+
+The longer answer is:
+[Read the Prisma docs about it](https://www.prisma.io/docs/concepts/components/prisma-migrate/db-push) 😇
+
+- [📜 Prisma Migrate Mental Model](https://www.prisma.io/docs/concepts/components/prisma-migrate/mental-model)
