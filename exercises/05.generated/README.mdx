@@ -1,1 +1,97 @@
 # Generating Seed Data
+
+Hard-coding data works great for small datasets. But as your application data
+requirements grow you're going to find it hard to keep up. You can certainly use
+production data to help you come up with your seed data, but there are privacy
+concerns there etc.
+
+## Faker.js
+
+A better way is to use a library like [faker](https://fakerjs.dev/) to
+
+> Generate massive amounts of fake (but realistic) data for testing and
+> development.
+
+Faker has a good guide to get you an introduction to how it works in
+[the usage docs](https://fakerjs.dev/guide/usage.html#create-complex-objects).
+But here's a quick snippet from that to give you an idea:
+
+```tsx
+import { faker } from '@faker-js/faker'
+
+function createRandomUser() {
+	return {
+		_id: faker.datatype.uuid(),
+		avatar: faker.image.avatar(),
+		birthday: faker.date.birthdate(),
+		email: faker.internet.email(),
+		firstName: faker.person.firstName(),
+		lastName: faker.person.lastName(),
+		sex: faker.person.sexType(),
+		subscriptionTier: faker.helpers.arrayElement(['free', 'basic', 'business']),
+	}
+}
+
+const user = createRandomUser()
+```
+
+## Dynamic Data
+
+Another thing we'll be doing in our workshop involves generating a random number
+of records (like a random number of images or notes). You can use faker to help
+with that as well:
+
+```tsx
+import { faker } from '@faker-js/faker'
+
+const numberOfThings = faker.number.int({ min: 1, max: 10 })
+
+// then you can use that number to generate an array of things:
+const things = Array.from({ length: numberOfThings }, () => {
+	// create your thing...
+})
+```
+
+Tip: if the thing you're doing is async, you can wrap it in `Promise.all`:
+
+```tsx
+const things = await Promise.all(
+	Array.from({ length: numberOfThings }, async () => {
+		// create your async thing...
+	}),
+)
+```
+
+## Unique Data
+
+Another thing you'll want to be careful of when generating data is you
+want to avoid creating duplicate data for unique fields. For example, if `email`
+is a unique field, you'll need to make sure you don't generate the same email
+address twice. Faker's mechanism for doing this is deprecated in favor of
+[`enforce-unique`](https://www.npmjs.com/package/enforce-unique):
+
+```tsx
+const uniqueEmailEnforcer = new UniqueEnforcer()
+
+const email = uniqueEmailEnforcer.enforce(() => faker.internet.email())
+```
+
+This will keep track of the generated emails and call the function again if it
+finds a duplicate.
+
+## Schema Validation
+
+Finally, one more thing you'll want to consider when generating fake data is
+that the data you generate is that it matches your schema requirements. The
+seed script isn't necessarily the place to test your application's resilience to
+bad data (you should have tests for that).
+
+For example, let's say you have a limit of 50 characters for the title of a
+Review. You'll want to make sure you don't generate a title that's too long. For
+example:
+
+```tsx
+const reviewTitle = faker.lorem.words(10).slice(0, 50)
+```
+
+Balancing realistic with practical is definitely in force here.

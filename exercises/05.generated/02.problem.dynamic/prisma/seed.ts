@@ -97,14 +97,19 @@ async function seed() {
 		),
 	)
 
+	// 🐨 we have a totalUsers variable. I'd like you to wrap this
+	// prisma.user.create call in a loop for that many times.
 	await prisma.user.create({
 		data: {
 			...createUser(),
+			// 🐨 add a random userImage here (💰 you can use userImages[index % 10])
 			notes: {
+				// 🐨 change this hard-coded array for a random number of notes (0-3 maybe)
 				create: [
 					{
 						title: faker.lorem.sentence(),
 						content: faker.lorem.paragraphs(),
+						// 🐨 add a random number of random images to the notes (0-5)
 					},
 					{
 						title: faker.lorem.sentence(),
@@ -156,6 +161,7 @@ async function seed() {
 			email: 'kody@kcd.dev',
 			username: 'kody',
 			name: 'Kody',
+			// 🐨 add Kody's profile image here (💰 kodyImages.kodyUser)
 			notes: {
 				create: [
 					{
@@ -164,6 +170,7 @@ async function seed() {
 						content:
 							'Koalas are found in the eucalyptus forests of eastern Australia. They have grey fur with a cream-coloured chest, and strong, clawed feet, perfect for living in the branches of trees!',
 						images: {
+							// 🐨 swap these hard-coded images for the ones in kodyImages
 							create: [
 								{
 									altText: 'an adorable koala cartoon illustration',

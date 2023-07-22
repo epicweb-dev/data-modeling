@@ -1,6 +1,102 @@
 # Dynamic Data
 
+🧝‍♂️ I've fixed things up a little bit and add some organization for us. Just so
+you know. I've also created a couple utility functions for creating users to
+make that data a tad bit more realistic and creating images that we've already
+got in our `tests/fixtures/images` directory.
+
+Here's a quick example of how my `img` utility helps us create images:
+
+```tsx remove=5-15 add=16-19
+await prisma.user.create({
+	data: {
+		// stuff here
+		image: {
+			create: {
+				altText: `someone at the end of a cry session who's starting to feel a little better.`,
+				file: {
+					create: {
+						contentType: 'image/png',
+						blob: await fs.promises.readFile(
+							'./tests/fixtures/images/notes/9.png',
+						),
+					},
+				},
+			},
+			create: await img({
+				altText: `someone at the end of a cry session who's starting to feel a little better.`,
+				filepath: './tests/fixtures/images/notes/9.png',
+			}),
+		},
+	},
+})
+```
+
+Additionally, I've also pre-loaded all the images for you, so you can simplify
+it even further if you want:
+
+```tsx remove=4-9 add=10
+await prisma.user.create({
+	data: {
+		// stuff here
+		image: {
+			create: await img({
+				altText: `someone at the end of a cry session who's starting to feel a little better.`,
+				filepath: './tests/fixtures/images/notes/9.png',
+			}),
+		}
+		image: { create: noteImages[9] },
+	},
+})
+```
+
+I also moved things around a bit generally to be more organized and ready for
+your exercise. No need to thank me. I'm just doing my job. 😎 (🦉 but you really
+should thank your co-workers because it's a nice thing to do).
+
+👨‍💼 **Thanks** Kellie! Utilities like this are pretty critical for generating
+data that's specific to our application. Alright, so we're going to need you to
+generate a lot more data. We'll have the emoji in there to help guide you
+through this a bit. As a reminder, here's one way you could do this:
+
+```ts
+const things = await Promise.all(
+	Array.from({ length: numberOfThings }, async () => {
+		// create your async thing...
+	}),
+)
+```
+
+And you can use Faker to create random numbers of things with:
+
+```ts
+const things = await Promise.all(
+	Array.from({ length: faker.number.int({ min: 0, max: 5 }) }, async () => {
+		// create your async thing...
+	}),
+)
+```
+
+<callout-warning>
+	It's very possible you will *hate* the level of expression nesting going on
+	here. That is totally fine. If you'd rather go with a more imperative style of
+	multiple statements and loops, that's totally fine. I personally prefer the
+	nesting, but there's more than one way to do this.
+</callout-warning>
+
 <callout-info>
 	SQLite doesn't support `createMany`, so that's why we have to do a single
 	`create` call per record we want to insert.
 </callout-info>
+
+🐨 Once you're happy with your seed script, let's run it!
+
+```sh nonumber
+npx prisma db seed
+```
+
+🐨 And then open up the Prisma Studio to see your generated data:
+
+```sh nonumber
+npx prisma studio
+```
