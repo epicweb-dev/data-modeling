@@ -1,1 +1,25 @@
 # Setup App Client
+
+👨‍💼 We are _finally_ ready to start using our new SQLite database in our
+application. We've already created a `PrismaClient` in our seed script, but now
+we want to access our SQLite data in our application.
+
+We're going to keep the old in-memory database around until we've migrated
+everything over, so just stick this new client above it at the top
+of <InlineFile file="app/utils/db.server.ts" />.
+
+You'll need to handle HMR (as described in the background info for this
+exercise) using the `singleton` helper.
+
+We also want you to add logging for all Prisma queries, but we want to
+customize this so it only logs the slower queries so we can make sense of our
+logs. The emoji will help you out with that, but
+[here are the logging docs](https://www.prisma.io/docs/concepts/components/prisma-client/working-with-prismaclient/logging).
+
+Finally, we'll also want to pre-connect our client since we start making
+database queries right away and there's no benefit to the default lazy
+connection.
+
+The emoji will be your guide!
+
+- [📜 Prisma Client Logging Docs](https://www.prisma.io/docs/concepts/components/prisma-client/working-with-prismaclient/logging)

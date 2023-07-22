@@ -1,1 +1,192 @@
 # Querying Data
+
+With SQL, you query data using the `SELECT` statement. The `SELECT` statement is
+one of the most complex statements in SQL, but it's also the most powerful. It's
+used to query data from one or more tables. The `SELECT` statement is composed
+of several clauses, but the two most important are the `FROM` and `WHERE`
+clauses.
+
+Let's start by looking at a simple `SELECT` statement:
+
+```sql
+SELECT * FROM user;
+```
+
+This will select everything from the user table. Let me state that again:
+
+- This will select (`SELECT`)
+- Everything (`*`)
+- From (`FROM`)
+- The user table (`user`)
+
+<callout-warning>
+	The semicolon at the end is required. I guess nobody told SQL about
+	[ASI](https://kcd.im/semicolons) 😆
+</callout-warning>
+
+Let's add a bit more:
+
+```sql
+SELECT id, name, email FROM user;
+```
+
+- This will select (`SELECT`)
+- The id, name, and email columns (`id, name, email`)
+- From (`FROM`)
+- The user table (`user`)
+
+## Where Clause
+
+As mentioned earlier, the `WHERE` clause is one of the most important clauses in
+a `SELECT` statement. It allows you to filter the data that's returned from the
+database. Let's look at an example:
+
+```sql
+SELECT id, name, email FROM user WHERE id = 1;
+```
+
+- This will select (`SELECT`)
+- The id, name, and email columns (`id, name, email`)
+- From (`FROM`)
+- The user table (`user`)
+- Where (`WHERE`)
+- The id column is equal to 1 (`id = 1`)
+
+The `WHERE` clause makes it so the database will only return rows that match the
+condition in the `WHERE` clause.
+
+## Other clauses
+
+There are quite a few other clauses that you can use in a `SELECT` statement.
+You can find a comprehensive list of keywords like select clauses in
+[the SQLite keyword documentation](https://www.sqlite.org/lang_keywords.html),
+and then you can search any that interest you in
+[the SQLite docs search](https://www.sqlite.org/docs.html).
+
+<callout-info>
+	If you ever see a SQL statement that's doing something you don't understand,
+	you can paste it in [astexplorer.net](https://astexplorer.net) and select the
+	SQL parser to see what different parts of the statement are called so you can
+	look those things up.
+</callout-info>
+
+<callout-success>
+	Next-level learning of SQL is to ask an AI assistant like
+	[ChatGPT](https://chat.openai.com/) to help you learn. Just be sure to
+	double-check your work. But it should help guide you to the right answer.
+</callout-success>
+
+## ORMs
+
+SQL is a complex syntax that has a lot of power. There are professionals who see
+the world in SQL (poor souls). But for the rest of us, we have ORMs. ORMs are
+Object Relational Mappers. And that's what the Prisma Client is all about.
+So instead of writing SQL queries by hand, we can use the Prisma Client to
+generate and execute the SQL for us.
+
+So, if we were to convert the SQL statement
+`SELECT id, name, email FROM user WHERE id = 1;` into a prisma call, it would
+look something like this:
+
+```tsx
+const user1 = await prisma.user.findUnique({
+	where: { id: 1 },
+	select: { id: true, name: true, email: true },
+})
+```
+
+The declarative nature of this API maps relatively well to the SQL that you
+would have written, so getting familiarity with SQL will help with using the
+Prisma Client.
+
+<callout-success>
+	It's important to note that the Prisma Client is not a traditional ORM. It's
+	an ORM-like API that generates and executes SQL for you. The objects you get
+	back from the Prisma Client do not have methods you can call to do things like
+	save them to the database (by default). Instead, you use the Prisma Client to
+	do that. This is one way, the Prisma Client sheds some of the things I don't
+	like about ORMs and keeps the things I do like about them.
+</callout-success>
+
+## Prisma Limitations
+
+It should be mentioned that the Prisma Client isn't as powerful as SQL. There
+are things that you may want to do which the Prisma Client cannot express. In
+any typical application, you'll have a handful of cases like this (if any) and
+in those cases, there's an API to drop down to SQL. We'll get to that in the
+next exercise.
+
+## Dealing with HMR
+
+<callout-danger>
+	Hot Module Replacement (HMR) means that every time we make a file change, our
+	code is re-evaluated. This makes it so we can develop quickly, but it causes
+	an issue we'll need to deal with.
+</callout-danger>
+
+When we create a new `PrismaClient` instance in our application, we create a new
+connection to our database every time we make a change. Eventually, this will
+cause our application to crash! So we need a workaround.
+
+The workaround is simple: "If we've already created a `PrismaClient` instance,
+let's use that one instead of creating a new one." Here's a simplified version
+of what that would be like:
+
+```tsx
+import { PrismaClient } from '@prisma/client'
+
+if (!global.prisma) {
+	global.prisma = new PrismaClient()
+}
+
+export const prisma = global.prisma
+```
+
+So we store our `PrismaClient` instance in a variable on `global` (which is
+unchanged between re-evaluations of our server code), and then we check if it
+exists before creating a new one. If it does exist, we'll use that one, if it
+does not, then we create a new one.
+
+While it is pretty simple, it also means that any change to the Prisma client
+configuration will require a server restart. Luckily, we don't change our client
+configuration that often, so this is a small price to pay for the benefits of
+HMR.
+
+We have a utility that helps us with this (it's annoying otherwise because
+TypeScript doesn't love the `global.` stuff):
+
+```tsx
+import { PrismaClient } from '@prisma/client'
+import { singleton } from '~/utils/singleton.server.ts'
+
+export const prisma = singleton('prisma', () => new PrismaClient())
+```
+
+## Lazy connection
+
+The Prisma Client will not connect to the database until it needs to. This means
+your first query will take a bit longer than subsequent queries. This is
+normally fine, but since we're confident we're going to need to start querying
+the database quickly and connecting earlier doesn't cost anything, we can use
+[the `$connect` method](https://www.prisma.io/docs/concepts/components/prisma-client/working-with-prismaclient/connection-management#connect)
+to connect to the database as soon as possible.
+
+```tsx
+import { PrismaClient } from '@prisma/client'
+import { singleton } from '~/utils/singleton.server.ts'
+
+export const prisma = singleton('prisma', () => {
+	const client = new PrismaClient()
+	client.$connect()
+	return client
+})
+```
+
+## Logging
+
+Prisma Client has a built-in logger that you can use to see what queries are
+being executed. This is super helpful for debugging. You can also enable events
+for queries so you can customize the logging. You can read more about that in
+[the Prisma Client logging docs](https://www.prisma.io/docs/concepts/components/prisma-client/logging).
+
+- [📜 Prisma Client CRUD docs](https://www.prisma.io/docs/concepts/components/prisma-client/crud)

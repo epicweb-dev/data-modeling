@@ -4,10 +4,10 @@
  * the proper database.
  */
 import { factory, manyOf, nullable, oneOf, primaryKey } from '@mswjs/data'
-import path from 'node:path'
+import crypto from 'crypto'
 import fs from 'node:fs/promises'
 import os from 'node:os'
-import crypto from 'crypto'
+import path from 'node:path'
 import { singleton } from './singleton.server.ts'
 
 const getId = () => crypto.randomBytes(16).toString('hex').slice(0, 8)
