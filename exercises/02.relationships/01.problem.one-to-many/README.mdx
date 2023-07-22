@@ -1,15 +1,38 @@
 # One-to-Many Relationships
 
-Add notes to schema
+👨‍💼 We need to add the `Notes` model to our schema. This is a one-to-many
+relationship. A `User` can have many `Notes`, but a `Note` can only have one
+`User` (who we call an "owner").
 
-```
+Please add the `Notes` model to <InlineFile file="prisma/schema.prisma" />
+
+The emoji will be in there to help guide you through this.
+
+💰 Note, if you get stuck on the syntax, remember you can check
+the <Link to="?preview=diff">Diff Tab</Link> to check your work against the
+solution.
+
+<callout-danger>
+	If you've installed the Prisma VSCode extension, it will automatically format
+	your schema which is great. It also even completes some of the relationship
+	syntax for you which is also great. However, it will also automatically
+	capitalize the property names it adds which is annoying. Just double check the
+	User model to make sure the property is lowercase `notes` and not `Notes`.
+</callout-danger>
+
+Great, with your schema ready to go, you can now push your updated schema to the
+database:
+
+```sh
 npx prisma db push
 ```
 
-```
+And then you can open Prisma Studio and you'll find your new `Notes` model:
+
+```sh
 npx prisma studio
 ```
 
-Manually Create one of these records
+Try to manually create a new note and associate it with a user.
 
 Beware of the extension auto-updating to capital letters in model

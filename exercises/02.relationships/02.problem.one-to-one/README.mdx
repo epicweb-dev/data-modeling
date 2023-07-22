@@ -1,28 +1,85 @@
 # One-to-One Relationships
 
-Create File and Image models
+👨‍💼 We still need to deal with the Note images. And we're also going to add
+images to the users as well. Before we do, Olivia the Owl would like to have a
+word with you about data modeling...
 
-Beware of the extension auto-updating to capital letters in model
+🦉 One thing you want to think about when you're building out your data model
+is... the future.
 
-```
+<callout-warning>
+	**CAUTION**: The future is impossible to predict. All you really can
+	reasonably predict about the future is that things will change. But you don't
+	know how. That said, it can be useful to build things in such a way that
+	optimizes for change provided it doesn't make things sub-optimal for the
+	present.
+</callout-warning>
+
+For our notes to have images, we just need a place to store the bytes for the
+image, it's content type, and the alt text. It's not much data. But if you think
+about a note taking app, it's reasonable to assume folks will want to upload
+more than just images to their notes. Maybe they'll want to upload a `csv` or a
+`pdf` or any number of other types of files.
+
+So we should think about modeling things in such a way that it makes supporting
+these other file types without complicating our data model in the present or
+having a difficult migration in the future.
+
+👨‍💼 Thanks for that Olivia. So, with that said, instead of making a single
+`Image` model, we're going to have a `File` model that holds the content type
+and file bytes, and then we'll have an `Image` model that references the file
+and adds the alt text.
+
+And then our `Note` and `User` models will be connected. So we'll have the
+following relationships:
+
+- `User` -> `Image`: one-to-one
+- `Note` -> `Image`: one-to-many
+- `Image` -> `File`: one-to-one
+
+<callout-danger>
+	Don't forget that the Prisma VSCode extension, can automatically capitalize
+	the property names it adds which is annoying. Just double check that all
+	properties are lower-case.
+</callout-danger>
+
+The emoji should be in the schema file to help guide you through this.
+
+💰 Remember, if you get stuck on the syntax, remember you can check
+the <Link to="?preview=diff">Diff Tab</Link> to check your work against the
+solution.
+
+Once you've got the model in a good place, then let's push that to the database:
+
+```sh
 npx prisma db push
 ```
 
-This updated the client automatically
+And now let's check out the studio:
 
-```
+```sh
 npx prisma studio
 ```
 
-Create a new file in the post:
+Now we want to create a new image/file. The tricky bit here is Prisma studio
+represents files as base64 encoded strings which is fine, I even prepared this
+base64 image for you:
 
-<InlineFile file="tmp.ignored.js">
-	Click here to create a temporary file
-</InlineFile>
+```
+data:image/jpeg;base64,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
+```
+
+Sadly, I couldn't find a way to create one-to-one required relationships in the
+Prisma studio. So it's time to move to some code!
+
+Let's create a script to do this for
+us: <InlineFile file="prisma/seed.ts">Click here to create `prisma/seed.ts`</InlineFile>
+
+Go ahead and stick this in there:
 
 ```tsx
-import fs from 'node:fs'
 import { PrismaClient } from '@prisma/client'
+import fs from 'node:fs'
 
 const prisma = new PrismaClient()
 
@@ -70,10 +127,21 @@ await prisma.note.update({
 })
 ```
 
-```
-node ./tmp.ignored.js
+Next, let's run it. Because this is a TypeScript file, you'll need to use `tsx`
+instead of `node`:
+
+```sh
+npx tsx ./prisma/seed.ts
 ```
 
-```
+Great, with that done, now open up the studio:
+
+```sh
 npx prisma studio
 ```
+
+You should have your note with the two images and two files in there now.
+Huzzah! We'll get further into the seeding capability later, but this is a good
+verification that our model is working.
+
+- [📜 Prisma `Bytes` Type](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#bytes)

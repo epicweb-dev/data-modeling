@@ -19,6 +19,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // 🐨 once you've made the Image model, add an optional image property here
+
   notes Note[]
 }
 
@@ -32,4 +34,27 @@ model Note {
 
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   ownerId String
+
+  // 🐨 once you've made the Image model, add an images property that's an
+  // array of Image models
 }
+
+// 🐨 add the File model here. It should have the following properties
+// - id: similar to the other id properties we have so far
+// - contentType: a required string
+// - blob: a Bytes type
+// - createdAt: just like the others we have already
+// - updatedAt: just like the others we have already
+// - image: an Image model with the @relationship attribute
+// - imageId: String with the @unique attribute establishing the one-to-one relationship
+
+// 🐨 add the Image model here. It should have the following properties
+// - id: similar to the other id properties we have so far
+// - altText: an optional string
+// - createdAt: just like the others we have already
+// - updatedAt: just like the others we have already
+// - note: an optional note with a relationship attribute
+// - noteId: an optional string
+// - user: an optional user with a relationship attribute
+// - userId: an optional string
+// - file: an optional File (💰 no relationship attribute here)

@@ -18,4 +18,21 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // 🐨 once you've created the Note model, add a "notes" property that is an
+  // array of the Note model
 }
+
+// 🐨 create the Note model here. It should have the following properties
+// - id: a String and be the `@id` and `@unique` field that defaults
+//   to a CUID
+// - title: a String
+// - content: a String
+// - createdAt: a DateTime and default to `now()`
+// - updatedAt: a DateTime and use the `@updatedAt` attribute
+// - owner: a User and use the `@relation` attribute to specify that
+//   it references the `id` field on the `User` model. It should also use the
+//   `onDelete` and `onUpdate` referential actions to specify that the `Note`
+//   should be deleted if the `User` is deleted, and that the `Note` should be
+//   updated if the `User` is updated.
+// - ownerId: a String

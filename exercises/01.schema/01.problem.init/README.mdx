@@ -60,25 +60,9 @@ into what these different bits mean, check out the
 Check [the Prisma Schema docs](https://pris.ly/d/prisma-schema) for examples
 of the schema syntax.
 
-💰 Or you can just look at it here:
-
-<details>
-
-<summary>💰 Schema #SpoilerAlert</summary>
-
-```prisma filename=prisma/schema.prisma
-model User {
-  id       String  @id @unique @default(cuid())
-  email    String  @unique
-  username String  @unique
-  name     String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-```
-
-</details>
+💰 Note, if you get stuck on the syntax, remember you can check
+the <Link to="?preview=diff">Diff Tab</Link> to check your work against the
+solution.
 
 Great, now that we've got that, let's push that schema to our database:
 
