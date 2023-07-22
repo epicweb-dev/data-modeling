@@ -13,6 +13,7 @@ const kody = await prisma.user.create({
 	},
 })
 
+// 🐨 Move this to be nested in the note create
 const newImage1 = await prisma.image.create({
 	data: {
 		altText: 'an adorable koala cartoon illustration',
@@ -27,6 +28,7 @@ const newImage1 = await prisma.image.create({
 	},
 })
 
+// 🐨 Move this to be nested in the note create
 const newImage2 = await prisma.image.create({
 	data: {
 		altText: 'a cartoon illustration of a koala in a tree eating',
@@ -41,6 +43,7 @@ const newImage2 = await prisma.image.create({
 	},
 })
 
+// 🐨 move this to be nested in the user create
 const firstNote = await prisma.note.create({
 	data: {
 		id: 'd27a197e',
@@ -51,10 +54,13 @@ const firstNote = await prisma.note.create({
 	},
 })
 
+// 🐨 move this to be nested in the note create
 await prisma.note.update({
 	where: { id: firstNote.id },
 	data: {
 		images: {
+			// 🐨 swap this for a "create" instead of a "connect" and inline the
+			// newImage1 and newImage2 data
 			connect: [{ id: newImage1.id }, { id: newImage2.id }],
 		},
 	},

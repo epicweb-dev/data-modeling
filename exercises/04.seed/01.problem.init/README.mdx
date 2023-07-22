@@ -1,1 +1,39 @@
 # Init Seed Script
+
+👨‍💼 Let's get our seed script going. We already created
+a <InlineFile file="prisma/seed.ts" /> file when we added images to our
+database, so we just need to configure prisma to run this file when we run
+development migrate commands and on demand when we call `npx prisma db seed`.
+
+🐨 Add this config to the `package.json`:
+
+```json
+"prisma": {
+  "seed": "npx tsx prisma/seed.ts"
+},
+```
+
+👨‍💼 Great. Now you should be able to run `npx prisma db seed` and see the images
+in your database.
+
+However, we want to make our seed script idempotent so it doesn't just keep
+filling our database with data. It's nice to be able to run the seed script as a
+way to start fresh.
+
+So check the emoji in <InlineFile file="prisma/seed.ts" /> to update it to
+delete the data at the start of the script and create all new data every time
+it's run.
+
+🐨 Once you've done that, try running
+
+```sh nonumber
+npx prisma migrate reset
+```
+
+Then open up Prisma studio with
+
+```sh nonumber
+npx prisma studio
+```
+
+Now you should have a fresh database with a user, a post, and two images/files.

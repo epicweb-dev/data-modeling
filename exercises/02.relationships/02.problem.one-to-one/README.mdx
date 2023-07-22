@@ -51,13 +51,13 @@ solution.
 
 Once you've got the model in a good place, then let's push that to the database:
 
-```sh
+```sh nonumber
 npx prisma db push
 ```
 
 And now let's check out the studio:
 
-```sh
+```sh nonumber
 npx prisma studio
 ```
 
@@ -130,13 +130,13 @@ await prisma.note.update({
 Next, let's run it. Because this is a TypeScript file, you'll need to use `tsx`
 instead of `node`:
 
-```sh
+```sh nonumber
 npx tsx ./prisma/seed.ts
 ```
 
 Great, with that done, now open up the studio:
 
-```sh
+```sh nonumber
 npx prisma studio
 ```
 
