@@ -1,1 +1,42 @@
 # Update
+
+We need to fix our note edit so we can save edits to our notes in the SQLite
+database. This is a tiny bit tricky though because we can't use a nested query
+to update the images and the notes all at.
+
+<details>
+
+<summary>Why can't we use a nested query?</summary>
+
+We can't use a nested query because we have some interesting conditions for our
+update:
+
+1. If the image has a file:
+   a. If the image has an id, update the image
+   b. If the image does not have an id, create the image
+2. If the image does not have a file:
+   a. If the image has an id, update the alt text
+   b. If the image does not have an id, do nothing
+
+We also need to delete the images that are no longer in the note.
+
+</details>
+
+So we have to delete the images that aren't in the form submission, then update
+the images that are, then update the note. This leads to some issues we'll deal
+with later.
+
+So here's what I want you to do, and the emoji in the file will help you:
+
+1. Update the note
+2. Delete the images that are no longer in the note
+3. Update the images that are in the note
+
+Finally, add `set` to the `prisma.note.update` call so we can set the images
+that are in the note (thereby removing deleted ones).
+
+This is much easier when done in a specific order, so we've added number emoji
+in the comments to help you know what order to do things in.
+
+- [📜 Prisma `set` nested query](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#set)
+- [📜 Prisma `notIn`](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#notin)

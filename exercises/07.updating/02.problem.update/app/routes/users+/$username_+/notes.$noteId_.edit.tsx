@@ -103,7 +103,30 @@ export async function action({ request, params }: DataFunctionArgs) {
 	if (!submission.value) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
+	// 0️⃣ 🐨 uncomment this:
 	// const { title, content, images = [] } = submission.value
+
+	// 2️⃣ 🐨 delete the images where the noteId is the params.noteId and the
+	// IDs are not in images.map(image => image.id).filter(Boolean)
+	// 📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#notin
+
+	// 3️⃣ 🐨 uncomment this:
+	// const updatedImages = await Promise.all(
+	// 	images.map(async image => {
+	// 		if (image.file) {
+	// 			// we'll handle this next
+	// 		} else if (image.id) {
+	// 			// 4️⃣ 🐨 update the image where the id is the image.id and
+	// 			// set the altText to image.altText
+	//			// make sure to select the id and return it.
+	// 		}
+	// 	}),
+	// )
+	// 💰 the updatedImages should be an array of objects with id properties
+
+	// 1️⃣ 🐨 Update the note's title and content
+	// 5️⃣ 🐨 Change the prisma.note.update call to include the images using `set`
+	// 📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#set
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)
 }

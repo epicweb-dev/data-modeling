@@ -1,1 +1,22 @@
 # Upsert
+
+An `upsert` is where you say: "If this record exists, update it with this data.
+If it doesn't exist, create it, and here's it's data."
+
+In the case of our images, when a user uploads an image, we want to create a new
+`File` record if one doesn't exist, or update the existing one if it does.
+
+But one tricky thing about what we have here is we've added a `Cache-Control` on
+our <InlineFile file="app/routes/resources+/images.$imageId.tsx" /> route. This
+is important for performance reasons, but it also means that if we update the
+file represented by that `imageId`, the browser will still be using the old
+cached version of the file. Users will be really annoyed.
+
+So if the user updates an existing image, we need to change the `imageId` and
+update that in the Note record. We'll use
+[`@paralleldrive/cuid2`](https://npm.im/@paralleldrive/cuid2) to generate a new
+cuid for the image in that case.
+
+The emoji will guide you in the right direction.
+
+- [📜 Prisma Client Reference: `upsert`](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#upsert-1)

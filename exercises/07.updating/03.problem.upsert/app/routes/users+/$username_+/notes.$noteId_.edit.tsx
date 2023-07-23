@@ -15,6 +15,8 @@ import {
 	type DataFunctionArgs,
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+// 🐨 uncomment this import:
+// import { createId as cuid } from '@paralleldrive/cuid2'
 import { useRef, useState } from 'react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
@@ -106,10 +108,24 @@ export async function action({ request, params }: DataFunctionArgs) {
 
 	const { title, content, images = [] } = submission.value
 
+	await prisma.image.deleteMany({
+		where: {
+			noteId: params.noteId,
+			id: { notIn: images.map(i => i.id).filter(Boolean) },
+		},
+	})
+
 	const updatedImages = await Promise.all(
 		images.map(async image => {
 			if (image.file) {
-				// we'll handle this next
+				// 🐨 get the `id` to use for the upsert
+				// 💰 const id = image.id ?? cuid()
+				// 💰 check above for the cuid import
+				// 🐨 return the result of the image upsert:
+				//   🐨 make sure to select the id
+				//   🐨 where the id matches the id variable above
+				//   🐨 in the create case, set the id (to the variable above), altText, and **create** the file
+				//   🐨 in the update case, set the id (to a new cuid()), altText, and **update** the file
 			} else if (image.id) {
 				return await prisma.image.update({
 					select: { id: true },

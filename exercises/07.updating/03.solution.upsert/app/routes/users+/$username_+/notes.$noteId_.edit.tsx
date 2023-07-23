@@ -107,15 +107,22 @@ export async function action({ request, params }: DataFunctionArgs) {
 
 	const { title, content, images = [] } = submission.value
 
+	await prisma.image.deleteMany({
+		where: {
+			noteId: params.noteId,
+			id: { notIn: images.map(i => i.id).filter(Boolean) },
+		},
+	})
+
 	const updatedImages = await Promise.all(
 		images.map(async image => {
 			if (image.file) {
+				const id = image.id ?? cuid()
 				return await prisma.image.upsert({
 					select: { id: true },
-					// use a fake ID as a fallback to meet the `where` requirements
-					// without matching any records
-					where: { id: image.id ?? '__does_not_exist__' },
+					where: { id },
 					create: {
+						id,
 						altText: image.altText,
 						file: { create: image.file },
 					},
