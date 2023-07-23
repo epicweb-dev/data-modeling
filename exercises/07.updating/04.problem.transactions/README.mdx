@@ -1,1 +1,49 @@
 # Transactions
+
+🧝‍♂️ I've added a line to the `action` that is gonna cause you some grief. I'm
+throwing an error before updating the note to simulate what would happen if
+updating the note failed for some reason. Go ahead
+and <InlineFile file="app/routes/users+/$username_+/notes.$noteId_.edit.tsx" line="151">uncomment it</InlineFile>
+and see what happens when you add a new image to a note.
+
+You may not notice right away, but we're creating a new image record without
+adding it to the note. If you want to spend some time looking in Prisma Studio,
+you'll be able to find an orphan image record. This is a problem because we
+don't want to have images in our database that aren't associated with a note or
+user.
+
+The problem is that we're not using a transaction. A transaction is a way to
+ensure that a series of database operations either all succeed or all fail. If
+any of the operations fail, the database will roll back all of the changes.
+
+When you perform a nested query with Prisma, it will automatically wrap the
+operation in a transaction. However, we're not using a nested query here. We're
+performing separate operations. We need to wrap them in a transaction to ensure
+that they all succeed or all fail together.
+
+You can read more about transactions with Prisma in the
+[Prisma Transactions Guide](https://www.prisma.io/docs/guides/performance-and-optimization/prisma-client-transactions-guide).
+
+Here's how you perform an interactive transaction like we need with Prisma:
+
+```ts
+await prisma.$transaction(async $prisma => {
+	// Use $prisma instead of prisma in here
+	await $prisma.user.create({
+		// ...
+	})
+	await $prisma.team.create({
+		// ...
+	})
+	// etc...
+})
+```
+
+<callout-muted class="aside">
+	Note, the `$prisma` name is not required, but I like calling it that.
+</callout-muted>
+
+Please wrap our operations in a transaction to ensure that they all succeed or
+all fail together.
+
+- [📜 Prisma Transactions Guide](https://www.prisma.io/docs/guides/performance-and-optimization/prisma-client-transactions-guide)

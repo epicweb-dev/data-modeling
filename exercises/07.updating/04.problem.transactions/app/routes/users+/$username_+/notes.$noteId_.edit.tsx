@@ -107,6 +107,9 @@ export async function action({ request, params }: DataFunctionArgs) {
 
 	const { title, content, images = [] } = submission.value
 
+	// 🐨 start the transaction here:
+
+	// 🐨 update prisma here to use the transactional prisma client
 	await prisma.image.deleteMany({
 		where: {
 			noteId: params.noteId,
@@ -118,6 +121,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 		images.map(async image => {
 			if (image.file) {
 				const id = image.id ?? cuid()
+				// 🐨 update prisma here to use the transactional prisma client
 				return await prisma.image.upsert({
 					select: { id: true },
 					where: { id },
@@ -134,6 +138,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 					},
 				})
 			} else if (image.id) {
+				// 🐨 update prisma here to use the transactional prisma client
 				return await prisma.image.update({
 					select: { id: true },
 					where: { id: image.id },
@@ -143,6 +148,9 @@ export async function action({ request, params }: DataFunctionArgs) {
 		}),
 	)
 
+	// throw new Error('🧝‍♂️ Kellie gotcha. kcd.im/promise')
+
+	// 🐨 update prisma here to use the transactional prisma client
 	await prisma.note.update({
 		select: { id: true },
 		where: { id: params.noteId },
@@ -154,6 +162,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 			},
 		},
 	})
+	// 🐨 the transaction ends here
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)
 }
