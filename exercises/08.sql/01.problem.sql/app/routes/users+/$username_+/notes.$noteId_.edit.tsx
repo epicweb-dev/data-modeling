@@ -67,6 +67,12 @@ const NoteEditorSchema = z.object({
 	images: z.array(ImageFieldsetSchema).optional(),
 })
 
+async function transformFile(file: File) {
+	return file.size > 0
+		? { contentType: file.type, blob: Buffer.from(await file.arrayBuffer()) }
+		: null
+}
+
 export async function action({ request, params }: DataFunctionArgs) {
 	invariantResponse(params.noteId, 'noteId param is required')
 
@@ -75,8 +81,19 @@ export async function action({ request, params }: DataFunctionArgs) {
 		createMemoryUploadHandler({ maxPartSize: MAX_UPLOAD_SIZE }),
 	)
 
-	const submission = parse(formData, {
-		schema: NoteEditorSchema,
+	const submission = await parse(formData, {
+		schema: NoteEditorSchema.transform(async ({ images = [], ...data }) => {
+			return {
+				...data,
+				images: await Promise.all(
+					images.map(async image => ({
+						...image,
+						file: await transformFile(image.file),
+					})),
+				),
+			}
+		}),
+		async: true,
 		acceptMultipleErrors: () => true,
 	})
 
@@ -93,22 +110,21 @@ export async function action({ request, params }: DataFunctionArgs) {
 	await prisma.$transaction(async $prisma => {
 		const updatedImages = await Promise.all(
 			images.map(async image => {
-				if (image.file.size > 0) {
-					const blob = Buffer.from(await image.file.arrayBuffer())
+				if (image.file) {
 					return await $prisma.image.upsert({
+						select: { id: true },
 						// use a fake ID as a fallback to meet the `where` requirements
 						// without matching any records
 						where: { id: image.id ?? '__does_not_exist__' },
-						select: { id: true },
 						create: {
 							altText: image.altText,
-							file: { create: { contentType: image.file.type, blob } },
+							file: { create: image.file },
 						},
 						update: {
 							// update the id since it is used for caching
 							id: cuid(),
 							altText: image.altText,
-							file: { update: { contentType: image.file.type, blob: blob } },
+							file: { update: image.file },
 						},
 					})
 				} else if (image.id) {

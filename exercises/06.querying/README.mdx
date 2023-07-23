@@ -1,5 +1,15 @@
 # Querying Data
 
+<callout-info class="important">
+	Starting with this exercise, we're going to start migrating away from our
+	in-memory database to our SQLite database. Because our seed data for each is
+	the same for the Kody user (including IDs), you'll find lots of the app
+	appears to work even for parts that haven't been migrated yet! 😆 Just be
+	aware of this if you notice some odd behavior (like deleting or editing a note
+	and not seeing those changes reflected in the app, you deleted it from one
+	database, but not the other! 😅).
+</callout-info>
+
 With SQL, you query data using the `SELECT` statement. The `SELECT` statement is
 one of the most complex statements in SQL, but it's also the most powerful. It's
 used to query data from one or more tables. The `SELECT` statement is composed

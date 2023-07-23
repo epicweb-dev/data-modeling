@@ -1,1 +1,73 @@
 # Updating Data
+
+Here's how you insert data into a table in SQL:
+
+```sql
+INSERT INTO table_name (column1, column2, column3, ...)
+VALUES (value1, value2, value3, ...);
+```
+
+And here's how you would update existing data in SQL:
+
+```sql
+UPDATE table_name
+SET column1 = value1, column2 = value2, ...
+WHERE condition;
+```
+
+And you can even do what's called an "upsert" which is an update or insert
+depending on whether the data already exists:
+
+```sql
+INSERT INTO table_name (column1, column2, column3, ...)
+VALUES (value1, value2, value3, ...)
+ON CONFLICT (column1)
+DO UPDATE SET column2 = value2, column3 = value3, ...;
+```
+
+There's more syntax you can use in SQLite to exclude certain columns from the
+update, and you can even do an "insert or ignore" which will ignore the insert
+if the data already exists.
+
+And finally, you can of course delete data from a table:
+
+```sql
+DELETE FROM table_name
+WHERE condition;
+```
+
+## Prisma
+
+Prisma has utilities for all of these operations. We've already used them in the
+`seed` script we've written. But here's a quick refresher of all of these
+operations:
+
+```ts
+// update the rocket with id "1" to have the name "Falcon 9"
+await prisma.rocket.update({
+	where: { id: 1 },
+	data: { name: 'Falcon 9' },
+})
+
+// update the rocket with the id "1" to have the name "Falcon 9" if it exists,
+// otherwise create a new rocket with the name "Falcon 9"
+await prisma.rocket.upsert({
+	where: { id: 1 },
+	update: { name: 'Falcon 9' },
+	create: { name: 'Falcon 9' },
+})
+
+await prisma.rocket.delete({
+	where: { id: 1 },
+})
+```
+
+While Prisma with SQLite does not support `createMany`, it does support
+`updateMany` and `deleteMany`. So if your `where` clause matches more than one
+record, your update will apply every record that matches. However, `upsertMany`
+is not supported.
+
+You can also perform nested queries for these as well.
+
+- [📜 Prisma Client Reference: Model Queries](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#model-queries)
+- [📜 Prisma Client Reference: Nested Queries](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#nested-queries)

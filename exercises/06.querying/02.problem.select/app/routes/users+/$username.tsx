@@ -3,10 +3,13 @@ import { Link, useLoaderData, type V2_MetaFunction } from '@remix-run/react'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
 import { Spacer } from '~/components/spacer.tsx'
 import { Button } from '~/components/ui/button.tsx'
+// 🐨 swap "db" for "prisma"
 import { db } from '~/utils/db.server.ts'
 import { getUserImgSrc, invariantResponse } from '~/utils/misc.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
+	// 🐨 delete this query for one using prisma
+	// 🐨 make sure to use `select` to only get the fields we care about.
 	const user = db.user.findFirst({
 		where: {
 			username: {
@@ -17,12 +20,15 @@ export async function loader({ params }: DataFunctionArgs) {
 
 	invariantResponse(user, 'User not found', { status: 404 })
 
+	// 🐨 you can just return the user here since we're selecting just the bits
+	// that matter in the query above.
 	return json({
 		user: {
 			name: user.name,
 			username: user.username,
 			image: user.image ? { id: user.image.id } : undefined,
 		},
+		// 🦉 we still want to keep this
 		userJoinedDisplay: new Date(user.createdAt).toLocaleDateString(),
 	})
 }

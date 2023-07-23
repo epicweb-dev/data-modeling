@@ -5,6 +5,8 @@ import { db } from '~/utils/db.server.ts'
 import { cn, getUserImgSrc, invariantResponse } from '~/utils/misc.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
+	// 🐨 swap this for a prisma query that selects only the data you need and
+	// selects the necessary properties for the user's image and notes as well.
 	const owner = db.user.findFirst({
 		where: {
 			username: {
@@ -15,6 +17,7 @@ export async function loader({ params }: DataFunctionArgs) {
 
 	invariantResponse(owner, 'Owner not found', { status: 404 })
 
+	// 💣 you shouldn't need this anymore. We got the notes from the prisma query above.
 	const notes = db.note
 		.findMany({
 			where: {
@@ -26,6 +29,8 @@ export async function loader({ params }: DataFunctionArgs) {
 			},
 		})
 		.map(({ id, title }) => ({ id, title }))
+
+	// 🐨 just return the owner now.
 	return json({ owner, notes })
 }
 
@@ -53,6 +58,7 @@ export default function NotesRoute() {
 							</h1>
 						</Link>
 						<ul className="overflow-y-auto overflow-x-hidden pb-12">
+							{/* 🐨 this will need to be updated since the notes are on data.owner.notes now */}
 							{data.notes.map(note => (
 								<li key={note.id}>
 									<NavLink

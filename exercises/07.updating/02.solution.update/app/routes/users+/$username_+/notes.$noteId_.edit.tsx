@@ -66,6 +66,12 @@ const NoteEditorSchema = z.object({
 	images: z.array(ImageFieldsetSchema).optional(),
 })
 
+async function transformFile(file: File) {
+	return file.size > 0
+		? { contentType: file.type, blob: Buffer.from(await file.arrayBuffer()) }
+		: null
+}
+
 export async function action({ request, params }: DataFunctionArgs) {
 	invariantResponse(params.noteId, 'noteId param is required')
 
@@ -74,8 +80,19 @@ export async function action({ request, params }: DataFunctionArgs) {
 		createMemoryUploadHandler({ maxPartSize: MAX_UPLOAD_SIZE }),
 	)
 
-	const submission = parse(formData, {
-		schema: NoteEditorSchema,
+	const submission = await parse(formData, {
+		schema: NoteEditorSchema.transform(async ({ images = [], ...data }) => {
+			return {
+				...data,
+				images: await Promise.all(
+					images.map(async image => ({
+						...image,
+						file: await transformFile(image.file),
+					})),
+				),
+			}
+		}),
+		async: true,
 		acceptMultipleErrors: () => true,
 	})
 
@@ -91,7 +108,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 
 	const updatedImages = await Promise.all(
 		images.map(async image => {
-			if (image.file.size > 0) {
+			if (image.file) {
 				// we'll handle this next
 			} else if (image.id) {
 				return await prisma.image.update({

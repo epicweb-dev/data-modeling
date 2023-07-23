@@ -1,6 +1,17 @@
 # Nested Select
 
-💯 As extra credit, update the `loader`
+👨‍💼 That's enough for now. Migrating the rest of our `select`s will be more of
+the same. 💯 As extra credit, you can update the `loader`
 for <InlineFile file="app/routes/users+/$username_+/notes.$noteId.tsx" />
 and <InlineFile file="app/routes/users+/$username_+/notes.$noteId_.edit.tsx" />.
 If you don't, 🧝‍♂️ Kellie will do it for you.
+
+🧝‍♂️ I'm also going to change our not edit form schema a tiny bit on the server to
+add a `transform` so we can change the `image.file` from a `File` object to an
+object with `contentType: string, blob: Buffer` which will make it easier to
+insert into the database. If you're feeling adventurous, try to do that on your
+own. If not, I'll do it for you. Feel free to peak at the diff if you want to
+see how I did it.
+
+Now it's time that we start thinking about how to manage updates with prisma.
+Let's get to that next!

@@ -25,7 +25,7 @@ import { Icon } from '~/components/ui/icon.tsx'
 import { Label } from '~/components/ui/label.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { Textarea } from '~/components/ui/textarea.tsx'
-import { prisma, updateNote } from '~/utils/db.server.ts'
+import { prisma } from '~/utils/db.server.ts'
 import { cn, invariantResponse, useIsSubmitting } from '~/utils/misc.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
@@ -66,6 +66,12 @@ const NoteEditorSchema = z.object({
 	images: z.array(ImageFieldsetSchema).optional(),
 })
 
+async function transformFile(file: File) {
+	return file.size > 0
+		? { contentType: file.type, blob: Buffer.from(await file.arrayBuffer()) }
+		: null
+}
+
 export async function action({ request, params }: DataFunctionArgs) {
 	invariantResponse(params.noteId, 'noteId param is required')
 
@@ -74,8 +80,19 @@ export async function action({ request, params }: DataFunctionArgs) {
 		createMemoryUploadHandler({ maxPartSize: MAX_UPLOAD_SIZE }),
 	)
 
-	const submission = parse(formData, {
-		schema: NoteEditorSchema,
+	const submission = await parse(formData, {
+		schema: NoteEditorSchema.transform(async ({ images = [], ...data }) => {
+			return {
+				...data,
+				images: await Promise.all(
+					images.map(async image => ({
+						...image,
+						file: await transformFile(image.file),
+					})),
+				),
+			}
+		}),
+		async: true,
 		acceptMultipleErrors: () => true,
 	})
 
@@ -86,8 +103,8 @@ export async function action({ request, params }: DataFunctionArgs) {
 	if (!submission.value) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
-	const { title, content, images = [] } = submission.value
-	await updateNote({ id: params.noteId, title, content, images })
+	// const { title, content, images = [] } = submission.value
+	// TODO: you need to handle the update for these in the next exercise...
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)
 }

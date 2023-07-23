@@ -1,3 +1,44 @@
 # Select
 
+Let's talk about this:
+
+```sql
+SELECT * FROM user WHERE id = 1;
+```
+
+Maybe we really _do_ want all the user's data, but most of the time we don't
+really need to retrieve the user's `createdAt` and `updatedAt` fields. We
+certainly wouldn't want to get their `password` (which of course would _not_ be
+a part of the `User` model and certainly wouldn't be stored in plaintext, but
+this is the wrong workshop to get involved in that discussion).
+
+So instead, you normally want to be more selective about what you're retrieving:
+
+```sql
+SELECT id, name, email FROM user WHERE id = 1;
+```
+
+The same thing applies with Prisma. By default, if you don't have a `select`,
+Prisma will return all the fields on the model. But you can be more selective
+about what you want to retrieve:
+
+```ts
+const user = await prisma.user.findUnique({
+	select: { id: true, name: true, email: true },
+	where: { id: 1 },
+})
+```
+
+Let's migrate our Profile page to use our prisma client and select only the
+fields we need for our UI.
+
+`select` is also applicable for `create` and `update` operations as well. If you
+don't care about the return value of an operation, then I recommend you use
+specify a select that only returns the `id` field. This will reduce the amount
+of data that needs to be returned from the database and will improve performance
+of your application.
+
+So once you're finished with the Profile page, go back to the seed script and
+add a select to the two `create` calls there.
+
 - [📜 Prisma CRUD docs](https://www.prisma.io/docs/concepts/components/prisma-client/crud#read)

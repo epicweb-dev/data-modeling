@@ -1,1 +1,79 @@
 # Nested Select
+
+👨‍💼 On our `/users/:username/notes` page, we're currently doing two queries to
+our in-memory database:
+
+1. Get the owner
+2. Get the notes
+
+We can definitely do this with Prisma, but it's even more efficient to do a
+single query that gets the owner and the notes in one go.
+
+This is something you can do with Prisma's `select` option. Here's an example
+of what a nested select would look like if we wanted to get all the reviews for
+a space ship:
+
+```ts
+await prisma.ship.findUnique({
+	where: { id },
+	select: {
+		id: true,
+		name: true,
+		reviews: {
+			select: { id: true, body: true, rating: true },
+		},
+	},
+})
+```
+
+<details>
+
+<summary>This will give us data that looks something like this:</summary>
+
+```json
+{
+	"id": 1,
+	"name": "Millennium Falcon",
+	"reviews": [
+		{
+			"id": 1,
+			"body": "She may not look like much, but she's got it where it counts, kid",
+			"rating": 4
+		},
+		{
+			"id": 2,
+			"body": "What a piece of junk!",
+			"rating": 1
+		},
+		{
+			"id": 3,
+			"body": "She's the fastest hunk of junk in the galaxy!",
+			"rating": 4
+		},
+		{
+			"id": 4,
+			"body": "You came in that thing? You're braver than I thought.",
+			"rating": 2
+		},
+		{
+			"id": 5,
+			"body": "It's the ship that made the Kessel Run in less than twelve parsecs.",
+			"rating": 5
+		}
+	]
+}
+```
+
+</details>
+
+Can you please update the notes route so we get our data from SQLite and only do
+a single query to get the owner and the notes?
+
+Oh, and you'll need to make a couple changes in other spots because the notes
+will now be a property of the owner instead of a sibling on the loader data.
+
+<callout-warning>
+	Prisma also has an `include` option which makes it easier to include related
+	models. NEVER USE THIS. It's just there for convenience for selecting all
+	fields for a record, but you never want to do that anyway.
+</callout-warning>
