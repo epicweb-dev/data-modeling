@@ -55,7 +55,7 @@ export default function UsersRoute() {
 									>
 										<img
 											alt={user.name ?? user.username}
-											src={getUserImgSrc(user.imageId)}
+											src={getUserImgSrc(user.image?.id)}
 											className="h-16 w-16 rounded-full"
 										/>
 										{user.name ? (

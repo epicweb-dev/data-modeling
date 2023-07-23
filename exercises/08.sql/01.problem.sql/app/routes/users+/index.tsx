@@ -10,6 +10,15 @@ export async function loader({ request }: DataFunctionArgs) {
 	if (searchTerm === '') {
 		return redirect('/users')
 	}
+
+	// 🐨 query the user table with prisma.$queryRaw
+	// Here are the requirements:
+	// 1. create a variable called `like` that is a string of the searchTerm surrounded by `%` characters
+	// 2. select the id, username, and name of the user (we'll bring in the image later)
+	// 3. filter where the username is LIKE the `like` variable or the name is LIKE the `like` variable
+	// 4. limit the results to 50
+
+	// 💣 remove this
 	const users = db.user.findMany({
 		where: {
 			username: {
@@ -20,6 +29,8 @@ export async function loader({ request }: DataFunctionArgs) {
 
 	return json({
 		status: 'idle',
+		// 🐨 you can simply set this to the users you get back from the query
+		// instead of doing the map thing because we can select exactly what we want.
 		users: users.map(u => ({
 			id: u.id,
 			username: u.username,
@@ -44,6 +55,7 @@ export default function UsersRoute() {
 			</div>
 			<main>
 				{data.status === 'idle' ? (
+					// 🦺 TypeScript won't like this. We'll fix it later.
 					data.users.length ? (
 						<ul
 							className={cn(
@@ -51,6 +63,7 @@ export default function UsersRoute() {
 								{ 'opacity-50': isSubmitting },
 							)}
 						>
+							{/* 🦺 TypeScript won't like this. We'll fix it later. */}
 							{data.users.map(user => (
 								<li key={user.id}>
 									<Link

@@ -7,3 +7,92 @@
 	helping you identify what's wrong with your syntax. It's not perfect, but it's
 	a good start.
 </callout-success>
+
+No matter how great an ORM is, you do sometimes need to just break out some raw
+SQL. There are some queries that just can't be represented very well in an ORM.
+
+Search is often a good example of a query that is better done in SQL. Consider
+a query that attempts to look up the cities that are closest to a geographical
+location. This involves some math that cannot be represented with Prisma.
+
+Here's a snippet from a project I worked on that did this:
+
+```sql
+acos(
+	sin(${from.lat} * PI()/180)
+	* sin(${to.lat} * PI()/180)
+	+ cos(${from.lat} * PI()/180)
+	* cos(${to.lat} * PI()/180)
+	* cos((${from.long} - ${to.long}) * PI()/180)
+)
+* 180/PI() * 60
+-- Earth radius: 3958.76 miles
+-- And one minute of arc is: 2π * 3958.76 miles / 60 / 360 = 1.1515
+* 1.1515
+```
+
+Good luck representing that in Prisma!
+
+Luckily, in cases like this, we can use `prisma.$queryRaw` to execute raw SQL
+queries. This is a great escape hatch for when you need it. It even supports
+parameterized queries, so you can avoid SQL injection attacks.
+
+```ts
+const cities = await prisma.$queryRaw`
+	SELECT
+		id, name
+	FROM
+		cities
+	WHERE
+		acos(
+			sin(${from.lat} * PI()/180)
+			* sin(${to.lat} * PI()/180)
+			+ cos(${from.lat} * PI()/180)
+			* cos(${to.lat} * PI()/180)
+			* cos((${from.long} - ${to.long}) * PI()/180)
+		)
+		* 180/PI() * 60
+		-- Earth radius: 3958.76 miles
+		-- And one minute of arc is: 2π * 3958.76 miles / 60 / 360 = 1.1515
+		* 1.1515
+		< ${maxDistance}
+	ORDER BY
+		distance ASC
+	LIMIT
+		${limit};
+`
+```
+
+The tricky bit here is that the return value of this query is going to be `any`
+because Prisma has no way of knowing what the shape of the data is going to be.
+
+We could definitely just cast this to the shape we expect, but the problem with
+that is if we change the query, we may forget to update the type. So instead
+we can use [`zod`](https://zod.dev) to define a schema for the data we expect to get back and then
+validate it.
+
+```ts
+import { z } from 'zod'
+
+const CitySchema = z.object({
+	id: z.number(),
+	name: z.string(),
+})
+const CitiesSchema = z.array(CitySchema)
+
+const rawCities = await prisma.$queryRaw`...`
+
+const result = CitiesSchema.safeParse(rawCities)
+
+if (result.success) {
+	const cities = result.data
+} else {
+	console.error(result.error)
+}
+```
+
+It's unfortunate to parse your own data (if you can't trust yourself, who can
+you trust!?), but if this became a bottleneck for you, you could strip out the
+runtime validation in production.
+
+- [📜 Prisma `$queryRaw`](https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#queryraw)

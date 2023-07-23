@@ -1,1 +1,43 @@
 # Raw SQL
+
+👨‍💼 Our user search is the last thing that needs to be updated to use SQLite
+instead of the in-memory database. I've got some requirements in mind for this
+feature, but for now, we're going to start small with something you could
+definitely do with regular Prisma queries, and then add onto it for some
+features you couldn't.
+
+First off, I want you to user's id, name, and username. I want the `searchTerm`
+to match against the username or the name, and I only want the first 50 results.
+
+You're going to need to use `LIKE` in your `WHERE` clause and `OR` as well.
+Here's an example of what the SQL might look like if we were trying to search
+for reviews that had the word "great" in them:
+
+```sql
+SELECT * FROM "Review" WHERE "text" LIKE '%great%';
+```
+
+And here's an example of a query that uses `OR`:
+
+```sql
+SELECT * FROM "Review" WHERE "text" LIKE '%great%' OR "text" LIKE '%awesome%';
+```
+
+The `%` sign is a wildcard that matches any number of characters. So, the first
+query would match "great", "not great", "great great great", etc. That character
+needs to be part of what you interpolate into the Prisma raw query, so if you
+wanted to parameterize that second query it would look like this:
+
+```tsx
+const searchTerm1 = '%great%'
+const searchTerm2 = '%awesome%'
+await prisma.$queryRaw`
+  SELECT * FROM "Review" WHERE "text" LIKE ${searchTerm1} OR "text" LIKE ${searchTerm2};
+`
+```
+
+In our case, you'll be getting the search term from the query string and it
+could be `null`, so you'll want to fallback to `''` if it is. Also, you'll be
+using the same search term for both the username and name fields.
+
+- [📜 Prisma `$queryRaw`](https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#queryraw)
