@@ -1,0 +1,424 @@
+# Multi-Column Index
+
+👨‍💼 As we've accumulated more and more users who have more and more notes, we've
+found that our query for the user list is getting slower and slower and using
+more and more memory and CPU. We need to optimize this query.
+
+I need you to do some analysis on the query and determine what indexes we need
+to add to optimize it.
+
+🐨 Before you go straight to make the **one line code change**
+in <InlineFile file="prisma/schema.prisma" />, please read through these
+instructions to do some analysis.
+
+<callout-info>
+	If you'd like to observe the performance issue, you can update the seed script
+	to generate more users and more notes per user. This could make the seed
+	script take a **very very** long time (several minutes). You should notice
+	major slow downs by having 15000 users each with 200-300 notes. You can also
+	comment out the images bit if you want it to run faster since images shouldn't
+	affect this. If you do this, a query with no search term should take ~8
+	seconds.
+</callout-info>
+
+## Identify the problem query
+
+If you run the query by opening <LinkToApp to="/user" />, you should see the
+query that was executed in the terminal output. It should log something like
+this:
+
+```sql
+SELECT user.id, user.username, user.name, image.id AS imageId
+FROM User AS user
+LEFT JOIN Image AS image ON user.id = image.userId
+WHERE user.username LIKE ?
+OR user.name LIKE ?
+ORDER BY (
+        SELECT updatedAt
+        FROM Note
+        WHERE ownerId = user.id
+        ORDER BY updatedAt DESC
+        LIMIT 1
+) DESC
+LIMIT 50;
+```
+
+If you seeded your database with lots of data, you should also notice it took
+several seconds for your data to come back. Yikes!
+
+## Analyze the problem query
+
+The `?` in that query represent interpolated values. To use this in the sqlite
+`EXPLAIN QUERY PLAN` command, we need to replace those with values. So, let's
+run this query with some values:
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT user.id, user.username, user.name, image.id AS imageId
+FROM User AS user
+LEFT JOIN Image AS image ON user.id = image.userId
+WHERE user.username LIKE "%kody%"
+OR user.name LIKE "%kody%"
+ORDER BY (
+        SELECT updatedAt
+        FROM Note
+        WHERE ownerId = user.id
+        ORDER BY updatedAt DESC
+        LIMIT 1
+) DESC
+LIMIT 50;
+```
+
+That gives us this output:
+
+```
+QUERY PLAN
+|--SCAN user
+|--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+|--CORRELATED SCALAR SUBQUERY 1
+|  |--SEARCH Note USING INDEX Note_ownerId_idx (ownerId=?)
+|  `--USE TEMP B-TREE FOR ORDER BY
+`--USE TEMP B-TREE FOR ORDER BY
+```
+
+Huh... Yeah, there are a couple things going on in there. Let's build up the
+query a bit at a time so we can talk about each bit.
+
+🐨 Let's start with this:
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT user.id, user.username, user.name
+FROM User AS user
+LIMIT 50;
+```
+
+That should give you this:
+
+```
+QUERY PLAN
+`--SCAN user
+```
+
+Remember what a SCAN with no index means? It says "read every record." But it's
+only happening because there's no `WHERE` or `ORDER BY` clause.
+
+🐨 Add an `ORDER BY` clause:
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT user.id, user.username, user.name
+FROM User AS user
+ORDER BY user.username
+LIMIT 50;
+```
+
+```
+QUERY PLAN
+`--SCAN user USING INDEX User_username_key
+```
+
+Great, we're using an index, so that'll be much more efficient.
+
+🐨 Let's try it out with the `name` column (which is not indexed):
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT user.id, user.username, user.name
+FROM User AS user
+ORDER BY user.name
+LIMIT 50;
+```
+
+This gives us:
+
+```
+QUERY PLAN
+|--SCAN user
+`--USE TEMP B-TREE FOR ORDER BY
+```
+
+So here's something new. Because the `user.name` column is not indexed, the
+database has to scan the user without an index, but in order to sort the data by
+`user.name`, it has to store all the user's names in a temporary "B-TREE" data
+structure so it can do the sorting for the order by. This is going to eat up
+some memory for the space for the data structure, and CPU for performing the
+comparison.
+
+But that's getting side-tracked. We're not ordering by the user's name. Let's
+get back on track.
+
+🐨 We'll add back the `ORDER BY user.username` for a second so we can see what
+the `LEFT JOIN` does to our query:
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT user.id, user.username, user.name
+FROM User AS user
+LEFT JOIN Image AS image ON user.id = image.userId
+ORDER BY user.username
+LIMIT 50;
+```
+
+And that gives us:
+
+```
+QUERY PLAN
+`--SCAN user USING INDEX User_username_key
+```
+
+At first this may surprise you, but the optimizer has determined that it can
+skip the `LEFT JOIN` entirely because we're not referencing it anywhere else
+in the query.
+
+🐨 Add `image.id` in the select
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT user.id, user.username, user.name, image.id as imageId
+FROM User AS user
+LEFT JOIN Image AS image ON user.id = image.userId
+ORDER BY user.username
+LIMIT 50;
+```
+
+That will give us:
+
+```
+QUERY PLAN
+|--SCAN user USING INDEX User_username_key
+`--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+```
+
+Super, with that we get a "SEARCH" using an index on the foreign key, so that
+should be quick enough. This is because the `ON` predicate is on the indexed
+column.
+
+🐨 Alrighty, let's add the `WHERE` clause with the `LIKE` in:
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT user.id, user.username, user.name, image.id as imageId
+FROM User AS user
+LEFT JOIN Image AS image ON user.id = image.userId
+WHERE user.username LIKE '%kody%'
+ORDER BY user.username
+LIMIT 50;
+```
+
+```
+QUERY PLAN
+|--SCAN user USING INDEX User_username_key
+`--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+```
+
+Whoops! It is using a index for the `ORDER BY`, but it's not telling us that
+it's likely note using an index for the `LIKE` (according to
+[the rules](https://www.sqlite.org/optoverview.html#the_like_optimization)).
+
+🐨 Let's add the `OR` for the `user.name`:
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT user.id, user.username, user.name, image.id as imageId
+FROM User AS user
+LEFT JOIN Image AS image ON user.id = image.userId
+WHERE user.username LIKE '%kody%'
+OR user.name LIKE '%kody%'
+ORDER BY user.username
+LIMIT 50;
+```
+
+```
+QUERY PLAN
+|--SCAN user USING INDEX User_username_key
+`--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+```
+
+It's still leverage the index for the `ORDER BY`, but it's not telling us that
+it's likely note using an index for the `LIKE`.
+
+🐨 Before we put the subquery in the `ORDER BY`, let's look at the subquery on
+its own:
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT updatedAt
+FROM Note
+WHERE ownerId = "some_id"
+ORDER BY updatedAt DESC
+LIMIT 1;
+```
+
+```
+QUERY PLAN
+|--SEARCH Note USING INDEX Note_ownerId_idx (ownerId=?)
+`--USE TEMP B-TREE FOR ORDER BY
+```
+
+Here we are again with the `TEMP B-TREE` for the `ORDER BY`. This is because
+the `updatedAt` column is not indexed. So for _every_ note for the user, it has
+to store the `updatedAt` in a temporary data structure so it can sort it to find
+the one that was most recently updated. Definitely something fishy here...
+
+🐨 Now, let's put that query as a subquery in the `ORDER BY`:
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT user.id, user.username, user.name, image.id as imageId
+FROM User AS user
+LEFT JOIN Image AS image ON user.id = image.userId
+WHERE user.username LIKE '%kody%'
+OR user.name LIKE '%kody%'
+ORDER BY (
+  SELECT updatedAt
+  FROM Note
+  WHERE ownerId = user.id
+  ORDER BY updatedAt DESC
+  LIMIT 1
+) DESC
+LIMIT 50;
+```
+
+```
+QUERY PLAN
+|--SCAN user
+|--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+|--CORRELATED SCALAR SUBQUERY 1
+|  |--SEARCH Note USING INDEX Note_ownerId_idx (ownerId=?)
+|  `--USE TEMP B-TREE FOR ORDER BY
+`--USE TEMP B-TREE FOR ORDER BY
+```
+
+Now explain is (finally) showing that we're scanning because there's no index in
+use on the user table (it was scanning the whole time silly). But, it's now also
+showing a `TEMP B-TREE` for the order by, and because that's a subquery, that
+will happen for _every user_ 😱. Very very bad.
+
+We need to optimize the `ORDER BY` sub query, and then the whole query should
+run much faster. Because that query is against the Note table, the index we need
+will go on the `Note` model.
+
+## Identify the index
+
+Remember the photo album metaphor? In that example, the first folder you want is
+the one where you're trying to filter things. That's often the column most
+frequently used in your queries. While individual indexes can certainly be
+beneficial for corresponding single-column queries, for multi-column queries, a
+well-designed composite index is often more efficient.
+
+<callout-info>
+	Generally, in a composite (multi-column) index, start with the column that is
+	most frequently used in your `WHERE` clause and can be most utilized, then add
+	frequently `ORDER BY` columns to the end of the index.
+</callout-info>
+
+This often means you start with "bigger buckets" and get more specific as you
+go.
+
+<callout-success>
+	While these rules are not hard and fast, they are a good starting point. You
+	should always test your queries to see if they're using the indexes you expect
+	them to use and if they're performing well.
+</callout-success>
+
+So in our case, we look at the `WHERE` and then the `ORDER BY` to determine our
+indexes. We're referencing the `updatedAt` in the `ORDER BY` and the `owerId` in
+the `WHERE`. We need to combine these columns in a single index to optimize this
+query.
+
+🐨 So, let's sort first by the `ownerId` and then by the `updatedId`.
+
+🐨 <InlineFile file="prisma/schema.prisma">Open up the `prisma/schema.prisma` file</InlineFile>
+and add an index for the `ownerId` and `updatedAt`.
+
+🐨 Now run:
+
+```sh nonumber
+npx prisma db push
+```
+
+<callout-warning>
+	Remember, this does not update your migration file. You'll want to do that
+	when you're ready to commit to this. We're just testing things out for now.
+</callout-warning>
+
+If you'd like, you can execute this command in SQLite and it will show you all
+the indexes active in the database:
+
+```sql
+.indexes
+```
+
+That should give you something like this:
+
+```
+File_id_key                            Note_ownerId_updatedAt_idx
+File_imageId_idx                       User_email_key
+File_imageId_key                       User_id_key
+Image_id_key                           User_username_key
+Image_noteId_idx                       sqlite_autoindex_File_1
+Image_userId_idx                       sqlite_autoindex_Note_1
+Image_userId_key                       sqlite_autoindex_User_1
+Note_id_key                            sqlite_autoindex__prisma_migrations_1
+Note_ownerId_idx
+```
+
+Our new one is the one called `Note_ownerId_updatedAt_idx`!
+
+🐨 Now, let's run the query plan again:
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT user.id, user.username, user.name, image.id as imageId
+FROM User AS user
+LEFT JOIN Image AS image ON user.id = image.userId
+WHERE user.username LIKE '%kody%'
+OR user.name LIKE '%kody%'
+ORDER BY (
+   SELECT updatedAt
+   FROM Note
+   WHERE ownerId = user.id
+   ORDER BY updatedAt DESC
+   LIMIT 1
+) DESC
+LIMIT 50;
+```
+
+```
+QUERY PLAN
+|--SCAN user
+|--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+|--CORRELATED SCALAR SUBQUERY 1
+|  `--SEARCH Note USING COVERING INDEX Note_ownerId_updatedAt_idx (ownerId=?)
+`--USE TEMP B-TREE FOR ORDER BY
+```
+
+Sweet! We've just eliminated the `TEMP B-TREE` on the Note table! And now our
+Note Search is using our new index (learn more about what "covering index
+means" below). This is a huge win because query doesn't have to read every note
+for every user!
+
+<callout-muted class="aside">
+	Note we do still have a non-indexed scan for the user, but based on the
+	requirements of a wildcard prefix in the `LIKE`, an index won't help anyway.
+</callout-muted>
+
+<details>
+
+<summary>Incidental Covering Index</summary>
+
+If you're curious, our we just happen to have what's known as a "covering index"
+here, which means SQLite doesn't even have to read _any_ records from the Note
+table. It can just read the index and get the data it needs. This is because all
+the columns used by the query are covered by the index and is _highly_
+efficient. You can learn more about this from
+[the SQLite Query Planner docs](https://www.sqlite.org/queryplanner.html#_covering_indexes)
+
+</details>
+
+🐨 Now go ahead and try searching users again: <LinkToApp to="/users" />
+
+Checking our logs, we're getting about `30ms` per query when there's no search
+term, and just a couple milliseconds when there is a search term. Going from 8
+seconds to 30ms is over 250x faster! Nice!

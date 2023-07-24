@@ -19,11 +19,11 @@ Here's a snippet from a project I worked on that did this:
 
 ```sql
 acos(
-	sin(${from.lat} * PI()/180)
-	* sin(${to.lat} * PI()/180)
-	+ cos(${from.lat} * PI()/180)
-	* cos(${to.lat} * PI()/180)
-	* cos((${from.long} - ${to.long}) * PI()/180)
+	sin(starport.lat * PI()/180)
+	* sin(city.lat * PI()/180)
+	+ cos(starport.lat * PI()/180)
+	* cos(city.lat * PI()/180)
+	* cos((starport.long - city.long) * PI()/180)
 )
 * 180/PI() * 60
 -- Earth radius: 3958.76 miles
@@ -33,34 +33,97 @@ acos(
 
 Good luck representing that in Prisma!
 
+<details>
+
+<summary>Click here for the full SQL if you're interested</summary>
+
+```sql
+SELECT
+	ship.id,
+	ship.modelId,
+	ship.hostId,
+	ship.starportId,
+	model.brandId,
+	ship.imageId,
+	ship.name,
+	ship.dailyCharge,
+	ship.capacity,
+	(
+		SELECT
+			avgRating
+		FROM
+			(
+				SELECT
+					hostReview.userId,
+					AVG(hostReview.rating) AS avgRating
+				FROM
+					Host host
+					INNER JOIN HostReview hostReview ON hostReview.subjectId = host.userId
+				GROUP BY
+					host.userId
+			) AS hostRatings
+		WHERE
+			hostRatings.userId = ship.hostId
+	) as hostAvgRating,
+	(
+		SELECT
+			avgRating
+		FROM
+			(
+				SELECT
+					ship.id,
+					AVG(shipReview.rating) AS avgRating
+				FROM
+					Ship ship
+					INNER JOIN ShipReview shipReview ON shipReview.subjectId = ship.id
+				GROUP BY
+					ship.id
+			) AS shipRatings
+		WHERE
+			shipRatings.id = ship.id
+	) as shipAvgRating
+FROM
+	Ship ship
+	INNER JOIN ShipModel model ON model.id = ship.modelId
+	INNER JOIN (
+		SELECT
+			starport.id,
+			acos(
+				sin(starport.lat * PI()/180)
+				* sin(city.lat * PI()/180)
+				+ cos(starport.lat * PI()/180)
+				* cos(city.lat * PI()/180)
+				* cos((starport.long - city.long) * PI()/180)
+			)
+			* 180/PI() * 60
+			-- Earth radius: 3958.76 miles
+			-- And one minute of arc is: 2π * 3958.76 miles / 60 / 360 = 1.1515
+			* 1.1515
+		FROM
+			starport
+			JOIN city ON city.id IN ("some_id","some_other_id")
+		ORDER BY
+			distance ASC
+		LIMIT
+			1
+	) AS closestStarport ON closestStarport.id = ship.starportId
+WHERE
+	closestStarport.id = ship.starportId
+LIMIT
+	50;
+```
+
+</details>
+
 Luckily, in cases like this, we can use `prisma.$queryRaw` to execute raw SQL
 queries. This is a great escape hatch for when you need it. It even supports
-parameterized queries, so you can avoid SQL injection attacks.
+parameterized queries, so you can avoid SQL injection attacks:
 
 ```ts
-const cities = await prisma.$queryRaw`
-	SELECT
-		id, name
-	FROM
-		cities
-	WHERE
-		acos(
-			sin(${from.lat} * PI()/180)
-			* sin(${to.lat} * PI()/180)
-			+ cos(${from.lat} * PI()/180)
-			* cos(${to.lat} * PI()/180)
-			* cos((${from.long} - ${to.long}) * PI()/180)
-		)
-		* 180/PI() * 60
-		-- Earth radius: 3958.76 miles
-		-- And one minute of arc is: 2π * 3958.76 miles / 60 / 360 = 1.1515
-		* 1.1515
-		< ${maxDistance}
-	ORDER BY
-		distance ASC
-	LIMIT
-		${limit};
+const ships = await prisma.$queryRaw`
+SELECT name, username from user WHERE user.id = ${params.userId};
 `
+// the interpolated string is auto-escaped.
 ```
 
 The tricky bit here is that the return value of this query is going to be `any`

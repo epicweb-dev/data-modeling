@@ -5,6 +5,9 @@ import { SearchBar } from '~/components/search-bar.tsx'
 import { prisma } from '~/utils/db.server.ts'
 import { cn, getUserImgSrc, useDelayedIsSubmitting } from '~/utils/misc.ts'
 
+// 🐨 add a new schema here for the search results. Each entry should have an
+// id, username, and (nullable) name
+
 export async function loader({ request }: DataFunctionArgs) {
 	const searchTerm = new URL(request.url).searchParams.get('search')
 	if (searchTerm === '') {
@@ -12,6 +15,7 @@ export async function loader({ request }: DataFunctionArgs) {
 	}
 
 	const like = `%${searchTerm ?? ''}%`
+	// 🐨 rename this to "rawUsers"
 	const users = await prisma.$queryRaw`
 		SELECT user.id, user.username, user.name
 		FROM User AS user
@@ -19,6 +23,10 @@ export async function loader({ request }: DataFunctionArgs) {
 		OR user.name LIKE ${like}
 		LIMIT 50
 	`
+
+	// 🐨 use your new schema to safely parse the rawUsers.
+	//   If there's an error, then return json with the error (result.error.message)
+	//   If there is not an error, then return json with the users
 
 	return json({ status: 'idle', users } as const)
 }
@@ -30,6 +38,11 @@ export default function UsersRoute() {
 		formAction: '/users',
 	})
 
+	// 💰 uncomment this to log the full error to the console:
+	// if (data.status === 'error') {
+	// 	console.error(data.error)
+	// }
+
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
 			<h1 className="text-h1">Epic Notes Users</h1>
@@ -38,7 +51,7 @@ export default function UsersRoute() {
 			</div>
 			<main>
 				{data.status === 'idle' ? (
-					// @ts-expect-error 🦺 we'll fix this next
+					// @ts-expect-error 💣 remove this now
 					data.users.length ? (
 						<ul
 							className={cn(
@@ -46,7 +59,7 @@ export default function UsersRoute() {
 								{ 'opacity-50': isSubmitting },
 							)}
 						>
-							{/* @ts-expect-error 🦺 we'll fix this next */}
+							{/* @ts-expect-error 💣 remove this now */}
 							{data.users.map(user => (
 								<li key={user.id}>
 									<Link
@@ -55,7 +68,8 @@ export default function UsersRoute() {
 									>
 										<img
 											alt={user.name ?? user.username}
-											src={getUserImgSrc(user.imageId)}
+											// add a ts-expect-error here. We'll fix this one next.
+											src={getUserImgSrc(user.image?.id)}
 											className="h-16 w-16 rounded-full"
 										/>
 										{user.name ? (
@@ -73,7 +87,11 @@ export default function UsersRoute() {
 					) : (
 						<p>No users found</p>
 					)
-				) : null}
+				) : // 💰 add "import { ErrorList } from '~/components/forms.tsx'" to the top and uncomment this to display the error:
+				// data.status === 'error' ? (
+				// <ErrorList errors={['There was an error parsing the results']} />
+				// ) :
+				null}
 			</main>
 		</div>
 	)

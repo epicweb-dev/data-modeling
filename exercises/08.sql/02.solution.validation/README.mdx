@@ -1,1 +1,30 @@
 # Validation
+
+👨‍💼 Looking good! Now we can more safely change our database schema and the
+query! You will want to make sure to add a test to this page to help catch
+mistakes, but we're much better off having this validation in place.
+
+🦉 Parsing data at runtime can be a potential issue if there are many records
+to parse and validate. However that's unlikely to be an issue here with a limit
+of 50 records. That said, we could definitely strip this in production with
+something like this:
+
+```ts remove=1 add=2-8
+const result = UserSearchResultsSchema.safeParse(rawUsers)
+const result =
+	ENV.MODE === 'production'
+		? ({
+				success: true,
+				data: rawUsers as z.infer<typeof UserSearchResultsSchema>,
+		  } as const)
+		: UserSearchResultsSchema.safeParse(rawUsers)
+if (!result.success) {
+	return json({ status: 'error', error: result.error.message } as const, {
+		status: 400,
+	})
+}
+return json({ status: 'idle', users: result.data } as const)
+```
+
+And we can turn that into a util function as well if we found ourselves wanting
+to do that a lot.

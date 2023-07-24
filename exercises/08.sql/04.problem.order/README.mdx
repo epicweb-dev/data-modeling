@@ -1,1 +1,74 @@
 # Order By
+
+👨‍💼 Ok ok, here me out. It's awesome that we can search by our user's names and
+usernames. But what would be more awesome is if the users were sorted by how
+active they've been. We don't want to have a user who hasn't added or updated
+a note in months or years coming up ahead of a user who adds and updates notes
+on a daily basis.
+
+We want our users to find the most active users. So let's sort things by how
+active they've been. We'll do this by identifying each user's most recently
+updated note. We'll use the `updatedAt` of the most recently updated note. And
+then sort the users we've found by that field for each of them.
+
+🦉 `Order By` can be pretty straightforward:
+
+```sql
+SELECT id, title, content from Review ORDER BY updatedAt LIMIT 30;
+```
+
+But it can also be more complicated using a nested query, which is what we'll
+need to do:
+
+```sql
+SELECT
+	id,
+	name,
+	content
+from
+	Ship as ship
+ORDER BY
+	(
+		SELECT
+			avgRating
+		FROM
+			(
+				SELECT
+					ship.id,
+					AVG(shipReview.rating) AS avgRating
+				FROM
+					Ship ship
+					INNER JOIN ShipReview shipReview ON shipReview.subjectId = ship.id
+				GROUP BY
+					ship.id
+			) AS shipRatings
+		WHERE
+			shipRatings.id = ship.id
+	) DESC
+LIMIT
+	50
+```
+
+👨‍💼 Luckily, our `ORDER BY` won't be _quite_ as complicated. Nested queries like
+this are one example of the power of SQL!
+
+It's easiest to think of the nested query on its own before combining it with
+the parent query. So consider the requirement:
+
+1. Select `updatedAt`
+1. From the `Note` model
+1. Where the `owerId` matches the `user.id`
+1. Order by the `updatedAt` descending (`DESC`)
+1. Get only the first one (`LIMIT`)
+
+Once you have that, then you can wrap that in an `ORDER BY` and you're golden.
+
+<callout-info>
+	Remember, [ChatGPT](https://chat.openai.com/) can help guide you on this one
+	or if you really get stuck you can check{' '}
+	<Link to="?preview=diff">the diff tab.</Link>
+</callout-info>
+
+To test this one out, perform a search, then open the second user, and edit
+one of their notes. Go back and perform the same search and that user should
+show up on top.

@@ -2,6 +2,7 @@ import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
+import { ErrorList } from '~/components/forms.tsx'
 import { SearchBar } from '~/components/search-bar.tsx'
 import { prisma } from '~/utils/db.server.ts'
 import { cn, getUserImgSrc, useDelayedIsSubmitting } from '~/utils/misc.ts'
@@ -45,6 +46,10 @@ export default function UsersRoute() {
 		formAction: '/users',
 	})
 
+	if (data.status === 'error') {
+		console.error(data.error)
+	}
+
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
 			<h1 className="text-h1">Epic Notes Users</h1>
@@ -69,7 +74,7 @@ export default function UsersRoute() {
 										<img
 											alt={user.name ?? user.username}
 											// @ts-expect-error 🦺 we'll fix this next
-											src={getUserImgSrc(user.imageId)}
+											src={getUserImgSrc(user.image?.id)}
 											className="h-16 w-16 rounded-full"
 										/>
 										{user.name ? (
@@ -88,10 +93,7 @@ export default function UsersRoute() {
 						<p>No users found</p>
 					)
 				) : data.status === 'error' ? (
-					<>
-						<div>Uh oh... An error happened!</div>
-						<pre>{data.error}</pre>
-					</>
+					<ErrorList errors={['There was an error parsing the results']} />
 				) : null}
 			</main>
 		</div>

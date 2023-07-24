@@ -111,40 +111,37 @@ async function seed() {
 		),
 	)
 
-	await Promise.all(
-		Array.from({ length: totalUsers }, async (_, index) => {
-			const user = await prisma.user
-				.create({
-					// 🐨 add a select to just get the ID so we're not pulling back the
-					// entire user object.
-					data: {
-						...createUser(),
-						image: { create: userImages[index % 10] },
-						notes: {
-							create: Array.from({
-								length: faker.number.int({ min: 0, max: 3 }),
-							}).map(() => ({
-								title: faker.lorem.sentence(),
-								content: faker.lorem.paragraphs(),
-								images: {
-									create: Array.from({
-										length: faker.number.int({ min: 0, max: 5 }),
-									}).map(() => {
-										const imgNumber = faker.number.int({ min: 0, max: 9 })
-										return noteImages[imgNumber]
-									}),
-								},
-							})),
-						},
+	for (let index = 0; index < totalUsers; index++) {
+		await prisma.user
+			.create({
+				// 🐨 add a select to just get the ID so we're not pulling back the
+				// entire user object.
+				data: {
+					...createUser(),
+					image: { create: userImages[index % 10] },
+					notes: {
+						create: Array.from({
+							length: faker.number.int({ min: 0, max: 3 }),
+						}).map(() => ({
+							title: faker.lorem.sentence(),
+							content: faker.lorem.paragraphs(),
+							images: {
+								create: Array.from({
+									length: faker.number.int({ min: 0, max: 5 }),
+								}).map(() => {
+									const imgNumber = faker.number.int({ min: 0, max: 9 })
+									return noteImages[imgNumber]
+								}),
+							},
+						})),
 					},
-				})
-				.catch(e => {
-					console.error('Error creating a user:', e)
-					return null
-				})
-			return user
-		}),
-	)
+				},
+			})
+			.catch(e => {
+				console.error('Error creating a user:', e)
+				return null
+			})
+	}
 	console.timeEnd(`👤 Created ${totalUsers} users...`)
 
 	console.time(`🐨 Created user "kody"`)

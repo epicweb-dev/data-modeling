@@ -125,10 +125,16 @@
       "path": "exercises/08.sql/04.solution.order"
     },
     {
-      "path": "exercises/09.optimize/01.problem"
+      "path": "exercises/09.optimize/01.problem.foreign-keys"
     },
     {
-      "path": "exercises/09.optimize/01.solution"
+      "path": "exercises/09.optimize/01.solution.foreign-keys"
+    },
+    {
+      "path": "exercises/09.optimize/02.problem.multi-column-index"
+    },
+    {
+      "path": "exercises/09.optimize/02.solution.multi-column-index"
     }
   ]
 }

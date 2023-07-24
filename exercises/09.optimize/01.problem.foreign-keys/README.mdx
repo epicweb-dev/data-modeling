@@ -1,0 +1,57 @@
+# Foreign Keys
+
+👨‍💼 I'm against pre-mature optimization as much as the next person, but I also
+like to apply best practices when I'm aware of them. It sounds like adding an
+index for our foreign keys is a generally good idea, so let's go ahead and do
+that.
+
+Before we do, let's see what SQLite will do with our typical query using the
+`EXPLAIN QUERY PLAN` command.
+
+<callout-info>
+	For methods on how to run this command, see the "Running SQL commands" section
+	of the background information for this exercise.
+</callout-info>
+
+🐨 Execute this command:
+
+```sql
+EXPLAIN QUERY PLAN
+SELECT * from note where ownerId = 1;
+```
+
+This gives us the following output:
+
+```
+QUERY PLAN
+`--SCAN note
+```
+
+That `SCAN` without an index says we're going to be reading every row in the
+note database looking for the ones that match our `ownerId`. Once we get a lot
+of notes, this could definitely end up being slow.
+
+This applies to all our foreign keys as well. Everywhere we are using the
+`@relation` attribute should have an index for the foreign key. Let's add those.
+
+🐨 Once you're done updating the `schema.prisma` file, go ahead and create the
+migration script:
+
+```sh nonumber
+npx prisma migrate deploy
+```
+
+You could call it "foreign-key-indexes".
+
+🐨 Once you've done that, try running the `EXPLAIN QUERY PLAN` command again.
+
+You should see something like this:
+
+```
+QUERY PLAN
+`--SEARCH note USING INDEX Note_ownerId_idx (ownerId=?)
+```
+
+Much better! Now we don't have to read every note to find the ones that match
+our `ownerId`. Instead the database will reference the index and only read those
+rows. This will help our CPU and memory utilization for these queries.

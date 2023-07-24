@@ -1,1 +1,44 @@
-# Left Join
+# Joins
+
+👨‍💼 Currently our user search page is only showing the fallback image for our
+users because our query is too simple and doesn't include the users' images.
+
+The image data isn't stored in the user table, but in a user table, so we need
+to have the database join the two records together to form a single record which
+it can return back to us.
+
+🦉 Let's talk about database joins for a moment.
+
+[![Visual representation of Inner, Left, Right, and Full Joins by The Data Geekery SQL Masterclass](https://github-production-user-asset-6210df.s3.amazonaws.com/1500684/255709471-45870c2d-477c-41fa-bdb0-ab90b456e5e1.png)](https://blog.jooq.org/say-no-to-venn-diagrams-when-explaining-joins/)
+
+Considering this chart, think of the left side of the join as our User table and
+the right side as the Image table. We want to get all the users whether or not
+they have an image, but if they do have an image we want their image ID. Which
+of these matches that desired result? It should result in all of the rows on the
+left (but none extra), and the right rows where available.
+
+So what we want to add here is a LEFT JOIN.
+
+When you perform a join, you define the table you want to join to, and then you
+define the condition for the join. In our case, we want to join the `Images` to
+the `Users` where the `user.id` matches the `image.userId`. This means that the
+database will look at each row in the `Users` table, and then look at each row
+in the `Images` table, and if the `userId` matches, it will include the `Image`
+row in the result.
+
+Here's an example of the syntax for a `LEFT JOIN` for joining space ships to
+their models:
+
+```sql
+SELECT ships.id, ships.name, models.name AS modelName
+FROM ships
+LEFT JOIN models ON ships.modelId = models.id
+```
+
+Notice that with this, we have access to the `models` in our `SELECT` statement.
+
+👨‍💼 Great, so let's add a left join to our query so we can access the user's
+image's `id` so we can include the `image.id` in our select so we can display it
+in our app.
+
+You'll also want to update the zod schema to account for the new field.

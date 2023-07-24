@@ -2,6 +2,7 @@ import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
+import { ErrorList } from '~/components/forms.tsx'
 import { SearchBar } from '~/components/search-bar.tsx'
 import { prisma } from '~/utils/db.server.ts'
 import { cn, getUserImgSrc, useDelayedIsSubmitting } from '~/utils/misc.ts'
@@ -10,6 +11,7 @@ const UserSearchResultSchema = z.object({
 	id: z.string(),
 	username: z.string(),
 	name: z.string().nullable(),
+	// 🐨 add a nullable imageId string field here
 })
 
 const UserSearchResultsSchema = z.array(UserSearchResultSchema)
@@ -22,8 +24,10 @@ export async function loader({ request }: DataFunctionArgs) {
 
 	const like = `%${searchTerm ?? ''}%`
 	const rawUsers = await prisma.$queryRaw`
+		-- 🐨 add image.id to this select (💰 I alias it with "AS imageId")
 		SELECT user.id, user.username, user.name
 		FROM User AS user
+		-- add INNER JOIN the Image table here on the user.id and image.userId
 		WHERE user.username LIKE ${like}
 		OR user.name LIKE ${like}
 		LIMIT 50
@@ -44,6 +48,10 @@ export default function UsersRoute() {
 		formMethod: 'GET',
 		formAction: '/users',
 	})
+
+	if (data.status === 'error') {
+		console.error(data.error)
+	}
 
 	return (
 		<div className="container mb-48 mt-36 flex flex-col items-center justify-center gap-6">
@@ -68,8 +76,9 @@ export default function UsersRoute() {
 									>
 										<img
 											alt={user.name ?? user.username}
-											// @ts-expect-error 🦺 we'll fix this next
-											src={getUserImgSrc(user.imageId)}
+											// 🐨 change from user.image?.id to user.imageId
+											// @ts-expect-error 💣 remove this ts-expect-error
+											src={getUserImgSrc(user.image?.id)}
 											className="h-16 w-16 rounded-full"
 										/>
 										{user.name ? (
@@ -88,10 +97,7 @@ export default function UsersRoute() {
 						<p>No users found</p>
 					)
 				) : data.status === 'error' ? (
-					<>
-						<div>Uh oh... An error happened!</div>
-						<pre>{data.error}</pre>
-					</>
+					<ErrorList errors={['There was an error parsing the results']} />
 				) : null}
 			</main>
 		</div>

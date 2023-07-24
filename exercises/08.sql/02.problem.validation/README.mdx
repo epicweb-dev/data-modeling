@@ -1,1 +1,56 @@
 # Validation
+
+👨‍💼 When you execute a raw query like this, it's not possible to determine the
+actual types for what the database gives back to you. Because we're querying our
+own database, we can pretty well trust the data that will come back. So we could
+just do this:
+
+```tsx
+type Report = {
+	id: string
+	name: string
+	number: number
+}
+type Reports = Array<Report>
+
+const reports = (await prisma.$queryRaw`
+SELECT id, name, number
+FROM ...
+`) as Reports
+```
+
+But the issue here is we could easily (or accidentally) change our `SELECT`
+statement or change our database schema and there wouldn't be anything to stop
+us from shipping that breakage to production (except for maybe the tests you for
+sure have 😉).
+
+So what we can do instead, is add runtime validation with
+[zod](https://zod.dev):
+
+```tsx
+import {z} from 'zod'
+const ReportSchema = z({
+  id: z.string()
+  name: z.string()
+  number: z.number()
+})
+const ReportsSchema = z.array(ReportSchema)
+
+const rawReports = await prisma.$queryRaw`
+SELECT id, name, number
+FROM ...
+`
+const result = ReportsSchema.safeParse(rawReports)
+if (!result.success) {
+  // handle the error case with result.error.message
+}
+const reports = result.data
+```
+
+So, let's add some runtime validation of our users query to protect ourselves
+from ourselves when executing this raw query.
+
+🦉 To test the error case, simply add or change a property in your zod schema or
+in the SELECT statement of the query.
+
+- [zod `nullable` utility](https://zod.dev/?id=nullables)
