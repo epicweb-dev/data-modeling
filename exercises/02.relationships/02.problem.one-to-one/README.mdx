@@ -15,6 +15,16 @@ is... the future.
 	present.
 </callout-warning>
 
+Consider, for example, that you are building a house. You're considering what to
+do about the pool you want one day. You know you don't want it now, but you may
+want to add one in the future. With that in mind, you may think about where the
+pool should go, and you decide to avoid planting trees there. Depending on how
+confident you are that you will get the pool you may even consider placing the
+plumbing for the pool in the ground before you pour the foundation so you don't
+have the pay the cost of digging things up later. You just need to weigh the
+costs of doing that now vs. the cost of doing it later and the likelihood you'll
+actually get the pool.
+
 For our notes to have images, we just need a place to store the bytes for the
 image, it's content type, and the alt text. It's not much data. But if you think
 about a note taking app, it's reasonable to assume folks will want to upload
@@ -25,7 +35,18 @@ So we should think about modeling things in such a way that it makes supporting
 these other file types without complicating our data model in the present or
 having a difficult migration in the future.
 
-👨‍💼 Thanks for that Olivia. So, with that said, instead of making a single
+👨‍💼 Thanks for that Olivia.
+
+🦉 Oh, one other thing... On the subject of images... We'll be storing our
+images directly in the database. Turns out, in some cases,
+[serving files from SQLite can be 35% faster than the file system](https://www.sqlite.org/fasterthanfs.html)
+(and can be more space efficient as well)! Even in situations where that's not
+the case, it's certainly not much slower. So while you definitely can bring in
+another service to manage storing the images for you, or store it to a
+persistent volume, starting out with the images in the database is a perfectly
+reasonable approach for many applications.
+
+👨‍💼 Ok, great. Thanks Olivia! So, with that said, instead of making a single
 `Image` model, we're going to have a `File` model that holds the content type
 and file bytes, and then we'll have an `Image` model that references the file
 and adds the alt text.
