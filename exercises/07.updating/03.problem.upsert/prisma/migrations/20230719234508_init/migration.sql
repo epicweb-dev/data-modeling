@@ -43,19 +43,10 @@ CREATE TABLE "Image" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_id_key" ON "User"("id");
-
--- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Note_id_key" ON "Note"("id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "File_id_key" ON "File"("id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "File_imageId_key" ON "File"("imageId");
