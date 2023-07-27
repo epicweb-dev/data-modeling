@@ -15,7 +15,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@kentcdodds/workshop-app": "^2.5.0",
+    "@kentcdodds/workshop-app": "^2.8.2",
     "@conform-to/react": "^0.7.3",
     "@conform-to/zod": "^0.7.3",
     "@mswjs/data": "^0.13.0",
