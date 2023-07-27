@@ -27,6 +27,15 @@
 - [Web Forms workshop](https://github.com/epicweb-dev/web-forms) (or similar
   experience)
 
+## Pre-workshop Resources
+
+Here are some resources you can read before taking the workshop to get you up to
+speed on some of the tools and concepts we'll be covering:
+
+- [What is Prisma?](https://www.prisma.io/docs/concepts/overview/what-is-prisma)
+- [Data Modeling](https://www.prisma.io/docs/concepts/overview/what-is-prisma/data-modeling)
+- [Is Prisma an ORM?](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/is-prisma-an-orm)
+
 ## System Requirements
 
 - [git][git] v2.13 or greater
