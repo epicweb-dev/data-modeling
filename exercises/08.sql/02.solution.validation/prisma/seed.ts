@@ -55,7 +55,7 @@ async function seed() {
 	await prisma.user.deleteMany()
 	console.timeEnd('🧹 Cleaned up the database...')
 
-	const totalUsers = 20
+	const totalUsers = 5
 	console.time(`👤 Created ${totalUsers} users...`)
 	const noteImages = await Promise.all([
 		img({
