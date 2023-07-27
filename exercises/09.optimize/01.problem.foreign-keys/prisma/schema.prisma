@@ -19,7 +19,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  image Image?
+  image UserImage?
   notes Note[]
 }
 
@@ -34,40 +34,37 @@ model Note {
   owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   ownerId String
 
-  images Image[]
+  images NoteImage[]
 
   // 🐨 add an index for the ownerId here
 }
 
-model File {
-  id          String @id @default(cuid())
+model NoteImage {
+  id          String  @id @default(cuid())
+  altText     String?
   contentType String
   blob        Bytes
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  image   Image  @relation(fields: [imageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  imageId String @unique
+  note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  noteId String
 
-  // 🐨 add an index for the imageId here
+  // 🐨 add an index for the noteId here
 }
 
-model Image {
-  id      String  @unique @default(cuid())
-  altText String?
+model UserImage {
+  id          String  @id @default(cuid())
+  altText     String?
+  contentType String
+  blob        Bytes
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  note   Note?   @relation(fields: [noteId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  noteId String?
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String @unique
 
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String? @unique
-
-  file File?
-
-  // 🐨 add an index for the noteId here
-  // 🐨 add an index for the userId here
+  // No index necessary for userId because it's unique
 }

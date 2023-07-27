@@ -31,25 +31,17 @@ await prisma.user.create({
 						create: [
 							{
 								altText: 'an adorable koala cartoon illustration',
-								file: {
-									create: {
-										contentType: 'image/png',
-										blob: await fs.promises.readFile(
-											'./tests/fixtures/images/kody-notes/cute-koala.png',
-										),
-									},
-								},
+								contentType: 'image/png',
+								blob: await fs.promises.readFile(
+									'./tests/fixtures/images/kody-notes/cute-koala.png',
+								),
 							},
 							{
 								altText: 'a cartoon illustration of a koala in a tree eating',
-								file: {
-									create: {
-										contentType: 'image/png',
-										blob: await fs.promises.readFile(
-											'./tests/fixtures/images/kody-notes/koala-eating.png',
-										),
-									},
-								},
+								contentType: 'image/png',
+								blob: await fs.promises.readFile(
+									'./tests/fixtures/images/kody-notes/koala-eating.png',
+								),
 							},
 						],
 					},

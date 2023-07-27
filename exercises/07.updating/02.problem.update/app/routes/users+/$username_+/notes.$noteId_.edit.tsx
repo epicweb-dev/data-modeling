@@ -26,7 +26,12 @@ import { Label } from '~/components/ui/label.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { Textarea } from '~/components/ui/textarea.tsx'
 import { prisma } from '~/utils/db.server.ts'
-import { cn, invariantResponse, useIsSubmitting } from '~/utils/misc.ts'
+import {
+	cn,
+	getNoteImgSrc,
+	invariantResponse,
+	useIsSubmitting,
+} from '~/utils/misc.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
 	const note = await prisma.note.findFirst({
@@ -66,12 +71,6 @@ const NoteEditorSchema = z.object({
 	images: z.array(ImageFieldsetSchema).optional(),
 })
 
-async function transformFile(file: File) {
-	return file.size > 0
-		? { contentType: file.type, blob: Buffer.from(await file.arrayBuffer()) }
-		: null
-}
-
 export async function action({ request, params }: DataFunctionArgs) {
 	invariantResponse(params.noteId, 'noteId param is required')
 
@@ -86,8 +85,13 @@ export async function action({ request, params }: DataFunctionArgs) {
 				...data,
 				images: await Promise.all(
 					images.map(async image => ({
-						...image,
-						file: await transformFile(image.file),
+						id: image.id,
+						altText: image.altText,
+						contentType: image.file.type,
+						blob:
+							image.file.size > 0
+								? Buffer.from(await image.file.arrayBuffer())
+								: null,
 					})),
 				),
 			}
@@ -103,30 +107,28 @@ export async function action({ request, params }: DataFunctionArgs) {
 	if (!submission.value) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
-	// 0️⃣ 🐨 uncomment this:
+	// 🐨 uncomment this:
 	// const { title, content, images = [] } = submission.value
 
-	// 2️⃣ 🐨 delete the images where the noteId is the params.noteId and the
-	// IDs are not in images.map(image => image.id).filter(Boolean)
+	// 🐨 Update the note's title and content
+	// 🐨 add a deleteMany on the images where the id is not in the ids in the
+	// images array (💰 images.map(i => i.id).filter(Boolean))
 	// 📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#notin
+	// 📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#deletemany-1
 
-	// 3️⃣ 🐨 uncomment this:
-	// const updatedImages = await Promise.all(
+	// 🐨 uncomment this:
+	// await Promise.all(
 	// 	images.map(async image => {
-	// 		if (image.file) {
+	//		const { blob } = image
+	// 		if (blob) {
 	// 			// we'll handle this next
 	// 		} else if (image.id) {
-	// 			// 4️⃣ 🐨 update the image where the id is the image.id and
+	// 			// 🐨 update the note image where the id is the image.id and
 	// 			// set the altText to image.altText
 	//			// make sure to select the id and return it.
 	// 		}
 	// 	}),
 	// )
-	// 💰 the updatedImages should be an array of objects with id properties
-
-	// 1️⃣ 🐨 Update the note's title and content
-	// 5️⃣ 🐨 Change the prisma.note.update call to include the images using `set`
-	// 📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#set
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)
 }
@@ -241,7 +243,7 @@ function ImageChooser({
 	const fields = useFieldset(ref, config)
 	const existingImage = Boolean(fields.id.defaultValue)
 	const [previewImage, setPreviewImage] = useState<string | null>(
-		existingImage ? `/resources/images/${fields.id.defaultValue}` : null,
+		fields.id.defaultValue ? getNoteImgSrc(fields.id.defaultValue) : null,
 	)
 	const [altText, setAltText] = useState(fields.altText.defaultValue ?? '')
 

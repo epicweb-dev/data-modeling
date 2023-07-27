@@ -28,7 +28,12 @@ import { Label } from '~/components/ui/label.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { Textarea } from '~/components/ui/textarea.tsx'
 import { prisma } from '~/utils/db.server.ts'
-import { cn, invariantResponse, useIsSubmitting } from '~/utils/misc.ts'
+import {
+	cn,
+	getNoteImgSrc,
+	invariantResponse,
+	useIsSubmitting,
+} from '~/utils/misc.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
 	const note = await prisma.note.findFirst({
@@ -68,12 +73,6 @@ const NoteEditorSchema = z.object({
 	images: z.array(ImageFieldsetSchema).optional(),
 })
 
-async function transformFile(file: File) {
-	return file.size > 0
-		? { contentType: file.type, blob: Buffer.from(await file.arrayBuffer()) }
-		: null
-}
-
 export async function action({ request, params }: DataFunctionArgs) {
 	invariantResponse(params.noteId, 'noteId param is required')
 
@@ -88,8 +87,13 @@ export async function action({ request, params }: DataFunctionArgs) {
 				...data,
 				images: await Promise.all(
 					images.map(async image => ({
-						...image,
-						file: await transformFile(image.file),
+						id: image.id,
+						altText: image.altText,
+						contentType: image.file.type,
+						blob:
+							image.file.size > 0
+								? Buffer.from(await image.file.arrayBuffer())
+								: null,
 					})),
 				),
 			}
@@ -108,34 +112,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 
 	const { title, content, images = [] } = submission.value
 
-	await prisma.image.deleteMany({
-		where: {
-			noteId: params.noteId,
-			id: { notIn: images.map(i => i.id).filter(Boolean) },
-		},
-	})
-
-	const updatedImages = await Promise.all(
-		images.map(async image => {
-			if (image.file) {
-				// 🐨 get the `id` to use for the upsert
-				// 💰 const id = image.id ?? cuid()
-				// 💰 check above for the cuid import
-				// 🐨 return the result of the image upsert:
-				//   🐨 make sure to select the id
-				//   🐨 where the id matches the id variable above
-				//   🐨 in the create case, set the id (to the variable above), altText, and **create** the file
-				//   🐨 in the update case, set the id (to a new cuid()), altText, and **update** the file
-			} else if (image.id) {
-				return await prisma.image.update({
-					select: { id: true },
-					where: { id: image.id },
-					data: { altText: image.altText },
-				})
-			}
-		}),
-	)
-
+	// 🐨 assign this to a variable called `note`
 	await prisma.note.update({
 		select: { id: true },
 		where: { id: params.noteId },
@@ -143,10 +120,32 @@ export async function action({ request, params }: DataFunctionArgs) {
 			title,
 			content,
 			images: {
-				set: updatedImages.filter(Boolean),
+				deleteMany: { id: { notIn: images.map(i => i.id).filter(Boolean) } },
 			},
 		},
 	})
+
+	await Promise.all(
+		images.map(async image => {
+			const { blob } = image
+			if (blob) {
+				// 🐨 get the `id` to use for the upsert
+				// 💰 const id = image.id ?? cuid()
+				// 💰 check above for the cuid import
+				// 🐨 return the result of the image upsert:
+				//   🐨 make sure to select the id
+				//   🐨 where the id matches the id variable above
+				//   🐨 in the create case, set the id (to the variable above), altText, blob, contentType, and noteId to the note.id
+				//   🐨 in the update case, set the id (to a new cuid()), altText, blob, contentType, and noteId to the note.id
+			} else if (image.id) {
+				return await prisma.noteImage.update({
+					select: { id: true },
+					where: { id: image.id },
+					data: { altText: image.altText },
+				})
+			}
+		}),
+	)
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)
 }
@@ -261,7 +260,7 @@ function ImageChooser({
 	const fields = useFieldset(ref, config)
 	const existingImage = Boolean(fields.id.defaultValue)
 	const [previewImage, setPreviewImage] = useState<string | null>(
-		existingImage ? `/resources/images/${fields.id.defaultValue}` : null,
+		fields.id.defaultValue ? getNoteImgSrc(fields.id.defaultValue) : null,
 	)
 	const [altText, setAltText] = useState(fields.altText.defaultValue ?? '')
 

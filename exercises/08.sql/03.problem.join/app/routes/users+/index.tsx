@@ -27,11 +27,12 @@ export async function loader({ request }: DataFunctionArgs) {
 		-- 🐨 add image.id to this select (💰 I alias it with "AS imageId")
 		SELECT user.id, user.username, user.name
 		FROM User AS user
-		-- add INNER JOIN the Image table here on the user.id and image.userId
+		-- add LEFT JOIN the Image table here on the user.id and image.userId
 		WHERE user.username LIKE ${like}
 		OR user.name LIKE ${like}
 		LIMIT 50
 	`
+	// 💰 Don't forget to fix the <img /> below 👇
 
 	const result = UserSearchResultsSchema.safeParse(rawUsers)
 	if (!result.success) {

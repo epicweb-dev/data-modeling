@@ -26,7 +26,12 @@ import { Label } from '~/components/ui/label.tsx'
 import { StatusButton } from '~/components/ui/status-button.tsx'
 import { Textarea } from '~/components/ui/textarea.tsx'
 import { db, updateNote } from '~/utils/db.server.ts'
-import { cn, invariantResponse, useIsSubmitting } from '~/utils/misc.ts'
+import {
+	cn,
+	getNoteImgSrc,
+	invariantResponse,
+	useIsSubmitting,
+} from '~/utils/misc.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
 	const note = db.note.findFirst({
@@ -205,7 +210,7 @@ function ImageChooser({
 	const fields = useFieldset(ref, config)
 	const existingImage = Boolean(fields.id.defaultValue)
 	const [previewImage, setPreviewImage] = useState<string | null>(
-		existingImage ? `/resources/images/${fields.id.defaultValue}` : null,
+		fields.id.defaultValue ? getNoteImgSrc(fields.id.defaultValue) : null,
 	)
 	const [altText, setAltText] = useState(fields.altText.defaultValue ?? '')
 

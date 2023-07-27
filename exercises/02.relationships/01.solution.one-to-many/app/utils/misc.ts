@@ -9,6 +9,10 @@ export function getUserImgSrc(imageId?: string | null) {
 	return imageId ? `/resources/images/${imageId}` : userFallback
 }
 
+export function getNoteImgSrc(imageId: string) {
+	return `/resources/images/${imageId}`
+}
+
 export function getErrorMessage(error: unknown) {
 	if (typeof error === 'string') return error
 	if (

@@ -30,7 +30,7 @@ this:
 ```sql
 SELECT user.id, user.username, user.name, image.id AS imageId
 FROM User AS user
-LEFT JOIN Image AS image ON user.id = image.userId
+LEFT JOIN UserImage AS image ON user.id = image.userId
 WHERE user.username LIKE ?
 OR user.name LIKE ?
 ORDER BY (
@@ -56,7 +56,7 @@ run this query with some values:
 EXPLAIN QUERY PLAN
 SELECT user.id, user.username, user.name, image.id AS imageId
 FROM User AS user
-LEFT JOIN Image AS image ON user.id = image.userId
+LEFT JOIN UserImage AS image ON user.id = image.userId
 WHERE user.username LIKE "%kody%"
 OR user.name LIKE "%kody%"
 ORDER BY (
@@ -74,7 +74,7 @@ That gives us this output:
 ```
 QUERY PLAN
 |--SCAN user
-|--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+|--SEARCH image USING INDEX UserImage_userId_key (userId=?) LEFT-JOIN
 |--CORRELATED SCALAR SUBQUERY 1
 |  |--SEARCH Note USING INDEX Note_ownerId_idx (ownerId=?)
 |  `--USE TEMP B-TREE FOR ORDER BY
@@ -155,7 +155,7 @@ the `LEFT JOIN` does to our query:
 EXPLAIN QUERY PLAN
 SELECT user.id, user.username, user.name
 FROM User AS user
-LEFT JOIN Image AS image ON user.id = image.userId
+LEFT JOIN UserImage AS image ON user.id = image.userId
 ORDER BY user.username
 LIMIT 50;
 ```
@@ -177,7 +177,7 @@ in the query.
 EXPLAIN QUERY PLAN
 SELECT user.id, user.username, user.name, image.id as imageId
 FROM User AS user
-LEFT JOIN Image AS image ON user.id = image.userId
+LEFT JOIN UserImage AS image ON user.id = image.userId
 ORDER BY user.username
 LIMIT 50;
 ```
@@ -187,7 +187,7 @@ That will give us:
 ```
 QUERY PLAN
 |--SCAN user USING INDEX User_username_key
-`--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+`--SEARCH image USING INDEX UserImage_userId_key (userId=?) LEFT-JOIN
 ```
 
 Super, with that we get a "SEARCH" using an index on the foreign key, so that
@@ -200,7 +200,7 @@ column.
 EXPLAIN QUERY PLAN
 SELECT user.id, user.username, user.name, image.id as imageId
 FROM User AS user
-LEFT JOIN Image AS image ON user.id = image.userId
+LEFT JOIN UserImage AS image ON user.id = image.userId
 WHERE user.username LIKE '%kody%'
 ORDER BY user.username
 LIMIT 50;
@@ -209,7 +209,7 @@ LIMIT 50;
 ```
 QUERY PLAN
 |--SCAN user USING INDEX User_username_key
-`--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+`--SEARCH image USING INDEX UserImage_userId_key (userId=?) LEFT-JOIN
 ```
 
 Whoops! It is using a index for the `ORDER BY`, but it's not telling us that
@@ -222,7 +222,7 @@ it's likely note using an index for the `LIKE` (according to
 EXPLAIN QUERY PLAN
 SELECT user.id, user.username, user.name, image.id as imageId
 FROM User AS user
-LEFT JOIN Image AS image ON user.id = image.userId
+LEFT JOIN UserImage AS image ON user.id = image.userId
 WHERE user.username LIKE '%kody%'
 OR user.name LIKE '%kody%'
 ORDER BY user.username
@@ -232,7 +232,7 @@ LIMIT 50;
 ```
 QUERY PLAN
 |--SCAN user USING INDEX User_username_key
-`--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+`--SEARCH image USING INDEX UserImage_userId_key (userId=?) LEFT-JOIN
 ```
 
 It's still leverage the index for the `ORDER BY`, but it's not telling us that
@@ -267,7 +267,7 @@ the one that was most recently updated. Definitely something fishy here...
 EXPLAIN QUERY PLAN
 SELECT user.id, user.username, user.name, image.id as imageId
 FROM User AS user
-LEFT JOIN Image AS image ON user.id = image.userId
+LEFT JOIN UserImage AS image ON user.id = image.userId
 WHERE user.username LIKE '%kody%'
 OR user.name LIKE '%kody%'
 ORDER BY (
@@ -283,7 +283,7 @@ LIMIT 50;
 ```
 QUERY PLAN
 |--SCAN user
-|--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+|--SEARCH image USING INDEX UserImage_userId_key (userId=?) LEFT-JOIN
 |--CORRELATED SCALAR SUBQUERY 1
 |  |--SEARCH Note USING INDEX Note_ownerId_idx (ownerId=?)
 |  `--USE TEMP B-TREE FOR ORDER BY
@@ -353,15 +353,12 @@ the indexes active in the database:
 That should give you something like this:
 
 ```
-File_id_key                            Note_ownerId_updatedAt_idx
-File_imageId_idx                       User_email_key
-File_imageId_key                       User_id_key
-Image_id_key                           User_username_key
-Image_noteId_idx                       sqlite_autoindex_File_1
-Image_userId_idx                       sqlite_autoindex_Note_1
-Image_userId_key                       sqlite_autoindex_User_1
-Note_id_key                            sqlite_autoindex__prisma_migrations_1
-Note_ownerId_idx
+NoteImage_noteId_idx                   sqlite_autoindex_NoteImage_1
+Note_ownerId_idx                       sqlite_autoindex_Note_1
+Note_ownerId_updatedAt_idx             sqlite_autoindex_UserImage_1
+UserImage_userId_key                   sqlite_autoindex_User_1
+User_email_key                         sqlite_autoindex__prisma_migrations_1
+User_username_key
 ```
 
 Our new one is the one called `Note_ownerId_updatedAt_idx`!
@@ -372,7 +369,7 @@ Our new one is the one called `Note_ownerId_updatedAt_idx`!
 EXPLAIN QUERY PLAN
 SELECT user.id, user.username, user.name, image.id as imageId
 FROM User AS user
-LEFT JOIN Image AS image ON user.id = image.userId
+LEFT JOIN UserImage AS image ON user.id = image.userId
 WHERE user.username LIKE '%kody%'
 OR user.name LIKE '%kody%'
 ORDER BY (
@@ -388,7 +385,7 @@ LIMIT 50;
 ```
 QUERY PLAN
 |--SCAN user
-|--SEARCH image USING INDEX Image_userId_key (userId=?) LEFT-JOIN
+|--SEARCH image USING INDEX UserImage_userId_key (userId=?) LEFT-JOIN
 |--CORRELATED SCALAR SUBQUERY 1
 |  `--SEARCH Note USING COVERING INDEX Note_ownerId_updatedAt_idx (ownerId=?)
 `--USE TEMP B-TREE FOR ORDER BY

@@ -28,12 +28,8 @@ async function img({
 }) {
 	return {
 		altText,
-		file: {
-			create: {
-				contentType: filepath.endsWith('.png') ? 'image/png' : 'image/jpeg',
-				blob: await fs.promises.readFile(filepath),
-			},
-		},
+		contentType: filepath.endsWith('.png') ? 'image/png' : 'image/jpeg',
+		blob: await fs.promises.readFile(filepath),
 	}
 }
 
@@ -92,7 +88,7 @@ async function seed() {
 	])
 
 	const userImages = await Promise.all(
-		Array.from({ length: 9 }, (_, index) =>
+		Array.from({ length: 10 }, (_, index) =>
 			img({ filepath: `./tests/fixtures/images/user/${index}.jpg` }),
 		),
 	)
@@ -169,30 +165,22 @@ async function seed() {
 						title: 'Basic Koala Facts',
 						content:
 							'Koalas are found in the eucalyptus forests of eastern Australia. They have grey fur with a cream-coloured chest, and strong, clawed feet, perfect for living in the branches of trees!',
+						// 🐨 swap these hard-coded images for the ones in kodyImages
 						images: {
-							// 🐨 swap these hard-coded images for the ones in kodyImages
 							create: [
 								{
 									altText: 'an adorable koala cartoon illustration',
-									file: {
-										create: {
-											contentType: 'image/png',
-											blob: await fs.promises.readFile(
-												'./tests/fixtures/images/kody-notes/cute-koala.png',
-											),
-										},
-									},
+									contentType: 'image/png',
+									blob: await fs.promises.readFile(
+										'./tests/fixtures/images/kody-notes/cute-koala.png',
+									),
 								},
 								{
 									altText: 'a cartoon illustration of a koala in a tree eating',
-									file: {
-										create: {
-											contentType: 'image/png',
-											blob: await fs.promises.readFile(
-												'./tests/fixtures/images/kody-notes/koala-eating.png',
-											),
-										},
-									},
+									contentType: 'image/png',
+									blob: await fs.promises.readFile(
+										'./tests/fixtures/images/kody-notes/koala-eating.png',
+									),
 								},
 							],
 						},

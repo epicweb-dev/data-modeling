@@ -14,55 +14,40 @@ const prisma = new PrismaClient()
 // name: 'Kody',
 // call the user variable you get back "kody"
 
-const newImage1 = await prisma.image.create({
-	data: {
-		altText: 'an adorable koala cartoon illustration',
-		file: {
-			create: {
-				contentType: 'image/png',
-				blob: await fs.promises.readFile(
-					'./tests/fixtures/images/kody-notes/cute-koala.png',
-				),
-			},
-		},
-	},
-})
+// 💣 we don't need this anymore:
+const firstNote = await prisma.note.findFirst()
 
-const newImage2 = await prisma.image.create({
-	data: {
-		altText: 'a cartoon illustration of a koala in a tree eating',
-		file: {
-			create: {
-				contentType: 'image/png',
-				blob: await fs.promises.readFile(
-					'./tests/fixtures/images/kody-notes/koala-eating.png',
-				),
-			},
-		},
-	},
-})
+if (!firstNote) {
+	throw new Error('You need to have a note in the database first')
+}
 
-// 🐨 instead of finding the first note, let's create it with these properties:
+// 🐨 instead of finding the first note like we do above, let's swap "update"
+// for "create" and add these properties:
 // id: 'd27a197e',
 // title: 'Basic Koala Facts',
 // content:
 // 	'Koalas are found in the eucalyptus forests of eastern Australia. They have grey fur with a cream-coloured chest, and strong, clawed feet, perfect for living in the branches of trees!',
 // ownerId: kody.id,
-// you can call it "firstNote"
-
-// 💣 we don't need this anymore:
-const firstNote = await prisma.note.findFirst()
-
-// 💣 we don't need this anymore
-if (!firstNote) {
-	throw new Error('You need to have a note in the database first')
-}
-
 await prisma.note.update({
 	where: { id: firstNote.id },
 	data: {
 		images: {
-			connect: [{ id: newImage1.id }, { id: newImage2.id }],
+			create: [
+				{
+					altText: 'an adorable koala cartoon illustration',
+					contentType: 'image/png',
+					blob: await fs.promises.readFile(
+						'./tests/fixtures/images/kody-notes/cute-koala.png',
+					),
+				},
+				{
+					altText: 'a cartoon illustration of a koala in a tree eating',
+					contentType: 'image/png',
+					blob: await fs.promises.readFile(
+						'./tests/fixtures/images/kody-notes/koala-eating.png',
+					),
+				},
+			],
 		},
 	},
 })

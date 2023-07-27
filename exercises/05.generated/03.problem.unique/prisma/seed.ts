@@ -39,12 +39,8 @@ async function img({
 }) {
 	return {
 		altText,
-		file: {
-			create: {
-				contentType: filepath.endsWith('.png') ? 'image/png' : 'image/jpeg',
-				blob: await fs.promises.readFile(filepath),
-			},
-		},
+		contentType: filepath.endsWith('.png') ? 'image/png' : 'image/jpeg',
+		blob: await fs.promises.readFile(filepath),
 	}
 }
 
@@ -103,7 +99,7 @@ async function seed() {
 	])
 
 	const userImages = await Promise.all(
-		Array.from({ length: 9 }, (_, index) =>
+		Array.from({ length: 10 }, (_, index) =>
 			img({ filepath: `./tests/fixtures/images/user/${index}.jpg` }),
 		),
 	)
