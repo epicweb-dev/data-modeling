@@ -56,5 +56,5 @@ model Note {
 // - note: an optional note with a relationship attribute
 // - noteId: an optional string
 // - user: an optional user with a relationship attribute
-// - userId: an optional string
+// - userId: an optional string with the @unique attribute establishing the one-to-one relationship
 // - file: an optional File (💰 no relationship attribute here)
