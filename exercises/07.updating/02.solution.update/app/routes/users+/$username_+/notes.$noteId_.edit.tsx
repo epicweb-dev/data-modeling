@@ -68,7 +68,7 @@ const ImageFieldsetSchema = z.object({
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
 	content: z.string().min(contentMinLength).max(contentMaxLength),
-	images: z.array(ImageFieldsetSchema).optional(),
+	images: z.array(ImageFieldsetSchema).max(5).optional(),
 })
 
 export async function action({ request, params }: DataFunctionArgs) {
@@ -122,20 +122,18 @@ export async function action({ request, params }: DataFunctionArgs) {
 		},
 	})
 
-	await Promise.all(
-		images.map(async image => {
-			const { blob } = image
-			if (blob) {
-				// we'll handle this next
-			} else if (image.id) {
-				return await prisma.noteImage.update({
-					select: { id: true },
-					where: { id: image.id },
-					data: { altText: image.altText },
-				})
-			}
-		}),
-	)
+	for (const image of images) {
+		const { blob } = image
+		if (blob) {
+			// we'll handle this next
+		} else if (image.id) {
+			await prisma.noteImage.update({
+				select: { id: true },
+				where: { id: image.id },
+				data: { altText: image.altText },
+			})
+		}
+	}
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)
 }

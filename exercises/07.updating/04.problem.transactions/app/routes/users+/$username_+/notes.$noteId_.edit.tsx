@@ -69,7 +69,7 @@ const ImageFieldsetSchema = z.object({
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
 	content: z.string().min(contentMinLength).max(contentMaxLength),
-	images: z.array(ImageFieldsetSchema).optional(),
+	images: z.array(ImageFieldsetSchema).max(5).optional(),
 })
 
 export async function action({ request, params }: DataFunctionArgs) {
@@ -124,34 +124,32 @@ export async function action({ request, params }: DataFunctionArgs) {
 		},
 	})
 
-	// 🐨 update prisma here to use the transactional prisma client
-	await Promise.all(
-		images.map(async image => {
-			const { blob } = image
-			if (blob) {
-				const id = image.id ?? cuid()
-				return await prisma.noteImage.upsert({
-					select: { id: true },
-					where: { id },
-					create: { ...image, blob, noteId: note.id },
-					update: {
-						...image,
-						blob,
-						// update the id since it is used for caching
-						id: cuid(),
-						noteId: note.id,
-					},
-				})
-			} else if (image.id) {
-				// 🐨 update prisma here to use the transactional prisma client
-				return await prisma.noteImage.update({
-					select: { id: true },
-					where: { id: image.id },
-					data: { altText: image.altText },
-				})
-			}
-		}),
-	)
+	for (const image of images) {
+		const { blob } = image
+		if (blob) {
+			const id = image.id ?? cuid()
+			// 🐨 update prisma here to use the transactional prisma client
+			await prisma.noteImage.upsert({
+				select: { id: true },
+				where: { id },
+				create: { ...image, blob, noteId: note.id },
+				update: {
+					...image,
+					blob,
+					// update the id since it is used for caching
+					id: cuid(),
+					noteId: note.id,
+				},
+			})
+		} else if (image.id) {
+			// 🐨 update prisma here to use the transactional prisma client
+			await prisma.noteImage.update({
+				select: { id: true },
+				where: { id: image.id },
+				data: { altText: image.altText },
+			})
+		}
+	}
 
 	// throw new Error('🧝‍♂️ Kellie gotcha. kcd.im/promise')
 

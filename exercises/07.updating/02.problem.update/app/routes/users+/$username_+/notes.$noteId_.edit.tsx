@@ -68,7 +68,7 @@ const ImageFieldsetSchema = z.object({
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
 	content: z.string().min(contentMinLength).max(contentMaxLength),
-	images: z.array(ImageFieldsetSchema).optional(),
+	images: z.array(ImageFieldsetSchema).max(5).optional(),
 })
 
 export async function action({ request, params }: DataFunctionArgs) {
@@ -117,18 +117,16 @@ export async function action({ request, params }: DataFunctionArgs) {
 	// 📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#deletemany-1
 
 	// 🐨 uncomment this:
-	// await Promise.all(
-	// 	images.map(async image => {
-	//		const { blob } = image
-	// 		if (blob) {
-	// 			// we'll handle this next
-	// 		} else if (image.id) {
-	// 			// 🐨 update the note image where the id is the image.id and
-	// 			// set the altText to image.altText
-	//			// make sure to select the id and return it.
-	// 		}
-	// 	}),
-	// )
+	// for (const image of images) {
+	// 	const { blob } = image
+	// 	if (blob) {
+	// 		// we'll handle this next
+	// 	} else if (image.id) {
+	// 		// 🐨 update the note image where the id is the image.id and
+	// 		// set the altText to image.altText
+	// 		// make sure to select the id and return it.
+	// 	}
+	// }
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)
 }

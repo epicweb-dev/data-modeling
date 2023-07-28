@@ -70,7 +70,7 @@ const ImageFieldsetSchema = z.object({
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
 	content: z.string().min(contentMinLength).max(contentMaxLength),
-	images: z.array(ImageFieldsetSchema).optional(),
+	images: z.array(ImageFieldsetSchema).max(5).optional(),
 })
 
 export async function action({ request, params }: DataFunctionArgs) {
@@ -125,27 +125,25 @@ export async function action({ request, params }: DataFunctionArgs) {
 		},
 	})
 
-	await Promise.all(
-		images.map(async image => {
-			const { blob } = image
-			if (blob) {
-				// 🐨 get the `id` to use for the upsert
-				// 💰 const id = image.id ?? cuid()
-				// 💰 check above for the cuid import
-				// 🐨 return the result of the image upsert:
-				//   🐨 make sure to select the id
-				//   🐨 where the id matches the id variable above
-				//   🐨 in the create case, set the id (to the variable above), altText, blob, contentType, and noteId to the note.id
-				//   🐨 in the update case, set the id (to a new cuid()), altText, blob, contentType, and noteId to the note.id
-			} else if (image.id) {
-				return await prisma.noteImage.update({
-					select: { id: true },
-					where: { id: image.id },
-					data: { altText: image.altText },
-				})
-			}
-		}),
-	)
+	for (const image of images) {
+		const { blob } = image
+		if (blob) {
+			// 🐨 get the `id` to use for the upsert
+			// 💰 const id = image.id ?? cuid()
+			// 💰 check above for the cuid import
+			// 🐨 Perform the image upsert:
+			//   🐨 make sure to select the id
+			//   🐨 where the id matches the id variable above
+			//   🐨 in the create case, set the id (to the variable above), altText, blob, contentType, and noteId to the note.id
+			//   🐨 in the update case, set the id (to a new cuid()), altText, blob, contentType, and noteId to the note.id
+		} else if (image.id) {
+			await prisma.noteImage.update({
+				select: { id: true },
+				where: { id: image.id },
+				data: { altText: image.altText },
+			})
+		}
+	}
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)
 }
