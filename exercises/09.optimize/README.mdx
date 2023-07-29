@@ -150,13 +150,20 @@ and each post has a `userId` column, you should index the `userId` column on the
 user.
 
 <callout-success>
-	By default, you should probably index foreign keys.
+	By default, you should probably index foreign keys for fields which are not
+	unique.
 </callout-success>
 
 Some databases (MySQL) will index foreign keys by default, but SQLite, Postgres,
 and SQL Server do not. Prisma strives to be consistent with our database so
 that's why it doesn't index foreign keys by default, but it's more often than
 not a good choice.
+
+<callout-info>
+	Prisma automatically creates an index on fields that have `@unique` on them,
+	so if your foreign key has `@unique`, then you don't need to add an index for
+	that one.
+</callout-info>
 
 Another thing to consider indexing, is anything that appears in your `WHERE`
 clause or `ORDER BY` clause. If you're filtering or sorting by a column, you
