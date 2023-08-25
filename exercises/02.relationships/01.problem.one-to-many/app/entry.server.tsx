@@ -14,7 +14,7 @@ export default async function handleRequest(...args: DocRequestArgs) {
 		<RemixServer context={remixContext} url={request.url} />,
 	)
 
-	responseHeaders.set('Content-Type', 'text/html')
+	responseHeaders.set('content-type', 'text/html')
 
 	return new Response('<!DOCTYPE html>' + markup, {
 		status: responseStatusCode,

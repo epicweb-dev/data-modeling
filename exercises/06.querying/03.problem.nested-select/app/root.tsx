@@ -13,13 +13,16 @@ import {
 	useMatches,
 	type MetaFunction,
 } from '@remix-run/react'
+import { AuthenticityTokenProvider, HoneypotProvider } from 'remix-utils'
 import faviconAssetUrl from './assets/favicon.svg'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { SearchBar } from './components/search-bar.tsx'
 import { KCDShop } from './kcdshop.tsx'
 import fontStylestylesheetUrl from './styles/font.css'
 import tailwindStylesheetUrl from './styles/tailwind.css'
+import { csrf } from './utils/csrf.server.ts'
 import { getEnv } from './utils/env.server.ts'
+import { honeypot } from './utils/honeypot.server.ts'
 
 export const links: LinksFunction = () => {
 	return [
@@ -31,7 +34,21 @@ export const links: LinksFunction = () => {
 }
 
 export async function loader() {
-	return json({ username: os.userInfo().username, ENV: getEnv() })
+	const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
+	const honeyProps = honeypot.getInputProps()
+	return json(
+		{
+			username: os.userInfo().username,
+			ENV: getEnv(),
+			csrfToken,
+			honeyProps,
+		},
+		{
+			headers: {
+				'set-cookie': csrfCookieHeader,
+			},
+		},
+	)
 }
 
 function Document({ children }: { children: React.ReactNode }) {
@@ -54,7 +71,7 @@ function Document({ children }: { children: React.ReactNode }) {
 	)
 }
 
-export default function App() {
+function App() {
 	const data = useLoaderData<typeof loader>()
 	const matches = useMatches()
 	const isOnSearchPage = matches.find(m => m.id === 'routes/users+/index')
@@ -97,6 +114,19 @@ export default function App() {
 		</Document>
 	)
 }
+
+function AppWithProviders() {
+	const data = useLoaderData<typeof loader>()
+	return (
+		<HoneypotProvider {...data.honeyProps}>
+			<AuthenticityTokenProvider token={data.csrfToken}>
+				<App />
+			</AuthenticityTokenProvider>
+		</HoneypotProvider>
+	)
+}
+
+export default AppWithProviders
 
 export const meta: MetaFunction = () => {
 	return [

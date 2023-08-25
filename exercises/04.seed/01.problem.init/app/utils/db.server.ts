@@ -3,7 +3,7 @@
  * for the purposes of our workshop. The data modeling workshop will cover
  * the proper database.
  */
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'

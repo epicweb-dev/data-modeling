@@ -13,7 +13,6 @@
     "noImplicitAny": true,
     "allowJs": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
     "paths": {
       "#*": ["./*"],
       "@/icon-name": [

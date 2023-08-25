@@ -26,7 +26,7 @@ export default function NotesRoute() {
 	const navLinkDefaultClassName =
 		'line-clamp-2 block rounded-l-full py-2 pl-8 pr-6 text-base lg:text-xl'
 	return (
-		<div className="container flex h-full min-h-[400px] pb-12">
+		<main className="container flex h-full min-h-[400px] px-0 pb-12 md:px-8">
 			<div className="grid w-full grid-cols-4 bg-muted pl-2 md:container md:mx-2 md:rounded-3xl md:pr-0">
 				<div className="relative col-span-1">
 					<div className="absolute inset-0 flex flex-col">
@@ -45,7 +45,7 @@ export default function NotesRoute() {
 						</Link>
 						<ul className="overflow-y-auto overflow-x-hidden pb-12">
 							{data.owner.notes.map(note => (
-								<li key={note.id}>
+								<li key={note.id} className="p-1 pr-0">
 									<NavLink
 										to={note.id}
 										preventScrollReset
@@ -61,11 +61,11 @@ export default function NotesRoute() {
 						</ul>
 					</div>
 				</div>
-				<main className="relative col-span-3 bg-accent md:rounded-r-3xl">
+				<div className="relative col-span-3 bg-accent md:rounded-r-3xl">
 					<Outlet />
-				</main>
+				</div>
 			</div>
-		</div>
+		</main>
 	)
 }
 

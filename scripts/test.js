@@ -2,7 +2,7 @@
 // because you may need to run it without deps.
 
 import fs from 'fs'
-import path from 'path'
+import path from 'node:path'
 import { spawn } from 'child_process'
 import {
 	getApps,

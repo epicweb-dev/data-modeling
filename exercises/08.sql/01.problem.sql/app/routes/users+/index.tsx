@@ -3,7 +3,7 @@ import { Link, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
 import { db } from '#app/utils/db.server.ts'
-import { cn, getUserImgSrc, useDelayedIsSubmitting } from '#app/utils/misc.ts'
+import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.ts'
 
 export async function loader({ request }: DataFunctionArgs) {
 	const searchTerm = new URL(request.url).searchParams.get('search')
@@ -42,7 +42,7 @@ export async function loader({ request }: DataFunctionArgs) {
 
 export default function UsersRoute() {
 	const data = useLoaderData<typeof loader>()
-	const isSubmitting = useDelayedIsSubmitting({
+	const isPending = useDelayedIsPending({
 		formMethod: 'GET',
 		formAction: '/users',
 	})
@@ -60,7 +60,7 @@ export default function UsersRoute() {
 						<ul
 							className={cn(
 								'flex w-full flex-wrap items-center justify-center gap-4 delay-200',
-								{ 'opacity-50': isSubmitting },
+								{ 'opacity-50': isPending },
 							)}
 						>
 							{/* 🦺 TypeScript won't like this. We'll fix it later. */}

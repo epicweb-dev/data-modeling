@@ -17,6 +17,7 @@ import {
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { useRef, useState } from 'react'
+import { AuthenticityTokenInput } from 'remix-utils'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { floatingToolbarClassName } from '#app/components/floating-toolbar.tsx'
@@ -26,12 +27,13 @@ import { Icon } from '#app/components/ui/icon.tsx'
 import { Label } from '#app/components/ui/label.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { Textarea } from '#app/components/ui/textarea.tsx'
+import { validateCSRF } from '#app/utils/csrf.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import {
 	cn,
 	getNoteImgSrc,
 	invariantResponse,
-	useIsSubmitting,
+	useIsPending,
 } from '#app/utils/misc.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
@@ -79,6 +81,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 		request,
 		createMemoryUploadHandler({ maxPartSize: MAX_UPLOAD_SIZE }),
 	)
+	await validateCSRF(formData, request.headers)
 
 	const submission = await parse(formData, {
 		schema: NoteEditorSchema.transform(async ({ images = [], ...data }) => {
@@ -154,7 +157,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 export default function NoteEdit() {
 	const data = useLoaderData<typeof loader>()
 	const actionData = useActionData<typeof action>()
-	const isSubmitting = useIsSubmitting()
+	const isPending = useIsPending()
 
 	const [form, fields] = useForm({
 		id: 'note-editor',
@@ -166,7 +169,7 @@ export default function NoteEdit() {
 		defaultValue: {
 			title: data.note.title,
 			content: data.note.content,
-			images: data.note.images,
+			images: data.note.images.length ? data.note.images : [{}],
 		},
 	})
 	const imageList = useFieldList(form.ref, fields.images)
@@ -179,6 +182,7 @@ export default function NoteEdit() {
 				{...form.props}
 				encType="multipart/form-data"
 			>
+				<AuthenticityTokenInput />
 				{/*
 					This hidden submit button is here to ensure that when the user hits
 					"enter" on an input field, the primary form function is submitted
@@ -242,8 +246,8 @@ export default function NoteEdit() {
 				<StatusButton
 					form={form.id}
 					type="submit"
-					disabled={isSubmitting}
-					status={isSubmitting ? 'pending' : 'idle'}
+					disabled={isPending}
+					status={isPending ? 'pending' : 'idle'}
 				>
 					Submit
 				</StatusButton>

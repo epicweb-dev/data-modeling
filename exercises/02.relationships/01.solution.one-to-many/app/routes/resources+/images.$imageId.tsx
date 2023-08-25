@@ -21,10 +21,10 @@ export async function loader({ params }: DataFunctionArgs) {
 	return new Response(body, {
 		status: 200,
 		headers: {
-			'Content-Type': contentType,
-			'Content-Length': fileStat.size.toString(),
-			'Content-Disposition': `inline; filename="${params.imageId}"`,
-			'Cache-Control': 'public, max-age=31536000, immutable',
+			'content-type': contentType,
+			'content-length': fileStat.size.toString(),
+			'content-disposition': `inline; filename="${params.imageId}"`,
+			'cache-control': 'public, max-age=31536000, immutable',
 		},
 	})
 }

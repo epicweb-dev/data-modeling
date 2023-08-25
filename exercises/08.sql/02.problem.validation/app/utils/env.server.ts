@@ -1,8 +1,7 @@
 const requiredServerEnvs = [
 	'NODE_ENV',
-	// In the future we can add things like these and more secrets:
-	// 'DATABASE_URL',
-	// 'SESSION_SECRET',
+	'SESSION_SECRET',
+	'HONEYPOT_SECRET',
 ] as const
 
 declare global {
