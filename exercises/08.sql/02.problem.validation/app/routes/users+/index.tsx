@@ -1,9 +1,9 @@
 import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
-import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
-import { SearchBar } from '~/components/search-bar.tsx'
-import { prisma } from '~/utils/db.server.ts'
-import { cn, getUserImgSrc, useDelayedIsSubmitting } from '~/utils/misc.ts'
+import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import { SearchBar } from '#app/components/search-bar.tsx'
+import { prisma } from '#app/utils/db.server.ts'
+import { cn, getUserImgSrc, useDelayedIsSubmitting } from '#app/utils/misc.ts'
 
 // 🐨 add a new schema here for the search results. Each entry should have an
 // id, username, and (nullable) name
@@ -87,7 +87,7 @@ export default function UsersRoute() {
 					) : (
 						<p>No users found</p>
 					)
-				) : // 💰 add "import { ErrorList } from '~/components/forms.tsx'" to the top and uncomment this to display the error:
+				) : // 💰 add "import { ErrorList } from '#app/components/forms.tsx'" to the top and uncomment this to display the error:
 				// data.status === 'error' ? (
 				// <ErrorList errors={['There was an error parsing the results']} />
 				// ) :

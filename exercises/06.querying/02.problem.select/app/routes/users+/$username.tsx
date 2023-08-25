@@ -1,11 +1,11 @@
 import { json, type DataFunctionArgs } from '@remix-run/node'
-import { Link, useLoaderData, type V2_MetaFunction } from '@remix-run/react'
-import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
-import { Spacer } from '~/components/spacer.tsx'
-import { Button } from '~/components/ui/button.tsx'
+import { Link, useLoaderData, type MetaFunction } from '@remix-run/react'
+import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import { Spacer } from '#app/components/spacer.tsx'
+import { Button } from '#app/components/ui/button.tsx'
 // 🐨 swap "db" for "prisma"
-import { db } from '~/utils/db.server.ts'
-import { getUserImgSrc, invariantResponse } from '~/utils/misc.ts'
+import { db } from '#app/utils/db.server.ts'
+import { getUserImgSrc, invariantResponse } from '#app/utils/misc.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
 	// 🐨 delete this query for one using prisma
@@ -77,7 +77,7 @@ export default function ProfileRoute() {
 	)
 }
 
-export const meta: V2_MetaFunction<typeof loader> = ({ data, params }) => {
+export const meta: MetaFunction<typeof loader> = ({ data, params }) => {
 	const displayName = data?.user.name ?? params.username
 	return [
 		{ title: `${displayName} | Epic Notes` },

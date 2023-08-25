@@ -7,6 +7,7 @@ import {
 	type FieldConfig,
 } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
+import { createId as cuid } from '@paralleldrive/cuid2'
 import {
 	unstable_createMemoryUploadHandler as createMemoryUploadHandler,
 	json,
@@ -15,24 +16,23 @@ import {
 	type DataFunctionArgs,
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { createId as cuid } from '@paralleldrive/cuid2'
 import { useRef, useState } from 'react'
 import { z } from 'zod'
-import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
-import { floatingToolbarClassName } from '~/components/floating-toolbar.tsx'
-import { ErrorList, Field, TextareaField } from '~/components/forms.tsx'
-import { Button } from '~/components/ui/button.tsx'
-import { Icon } from '~/components/ui/icon.tsx'
-import { Label } from '~/components/ui/label.tsx'
-import { StatusButton } from '~/components/ui/status-button.tsx'
-import { Textarea } from '~/components/ui/textarea.tsx'
-import { prisma } from '~/utils/db.server.ts'
+import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import { floatingToolbarClassName } from '#app/components/floating-toolbar.tsx'
+import { ErrorList, Field, TextareaField } from '#app/components/forms.tsx'
+import { Button } from '#app/components/ui/button.tsx'
+import { Icon } from '#app/components/ui/icon.tsx'
+import { Label } from '#app/components/ui/label.tsx'
+import { StatusButton } from '#app/components/ui/status-button.tsx'
+import { Textarea } from '#app/components/ui/textarea.tsx'
+import { prisma } from '#app/utils/db.server.ts'
 import {
 	cn,
 	getNoteImgSrc,
 	invariantResponse,
 	useIsSubmitting,
-} from '~/utils/misc.ts'
+} from '#app/utils/misc.ts'
 
 export async function loader({ params }: DataFunctionArgs) {
 	const note = await prisma.note.findFirst({
@@ -98,7 +98,6 @@ export async function action({ request, params }: DataFunctionArgs) {
 			}
 		}),
 		async: true,
-		acceptMultipleErrors: () => true,
 	})
 
 	if (submission.intent !== 'submit') {
@@ -191,14 +190,14 @@ export default function NoteEdit() {
 						labelProps={{ children: 'Title' }}
 						inputProps={{
 							autoFocus: true,
-							...conform.input(fields.title, { ariaAttributes: true }),
+							...conform.input(fields.title),
 						}}
 						errors={fields.title.errors}
 					/>
 					<TextareaField
 						labelProps={{ children: 'Content' }}
 						textareaProps={{
-							...conform.textarea(fields.content, { ariaAttributes: true }),
+							...conform.textarea(fields.content),
 						}}
 						errors={fields.content.errors}
 					/>
@@ -302,12 +301,7 @@ function ImageChooser({
 								</div>
 							)}
 							{existingImage ? (
-								<input
-									{...conform.input(fields.id, {
-										type: 'hidden',
-										ariaAttributes: true,
-									})}
-								/>
+								<input {...conform.input(fields.id, { type: 'hidden' })} />
 							) : null}
 							<input
 								aria-label="Image"
@@ -326,10 +320,7 @@ function ImageChooser({
 									}
 								}}
 								accept="image/*"
-								{...conform.input(fields.file, {
-									type: 'file',
-									ariaAttributes: true,
-								})}
+								{...conform.input(fields.file, { type: 'file' })}
 							/>
 						</label>
 					</div>
@@ -341,7 +332,7 @@ function ImageChooser({
 					<Label htmlFor={fields.altText.id}>Alt Text</Label>
 					<Textarea
 						onChange={e => setAltText(e.currentTarget.value)}
-						{...conform.textarea(fields.altText, { ariaAttributes: true })}
+						{...conform.textarea(fields.altText)}
 					/>
 					<div className="min-h-[32px] px-4 pb-3 pt-1">
 						<ErrorList

@@ -11,7 +11,7 @@ import {
 	ScrollRestoration,
 	useLoaderData,
 	useMatches,
-	type V2_MetaFunction,
+	type MetaFunction,
 } from '@remix-run/react'
 import os from 'node:os'
 import faviconAssetUrl from './assets/favicon.svg'
@@ -98,7 +98,7 @@ export default function App() {
 	)
 }
 
-export const meta: V2_MetaFunction = () => {
+export const meta: MetaFunction = () => {
 	return [
 		{ title: 'Epic Notes' },
 		{ name: 'description', content: `Your own captain's log` },

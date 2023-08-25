@@ -2,7 +2,7 @@
 // then run "npm run build:icons"
 
 import { type SVGProps } from 'react'
-import { cn } from '~/utils/misc.ts'
+import { cn } from '#app/utils/misc.ts'
 import href from './icon.svg'
 export { href }
 
@@ -63,24 +63,24 @@ export function Icon({
 }
 
 export type IconName =
-  | "arrow-left"
-  | "arrow-right"
-  | "avatar"
-  | "camera"
-  | "check"
-  | "clock"
-  | "cross-1"
-  | "exit"
-  | "file-text"
-  | "laptop"
-  | "lock-closed"
-  | "lock-open-1"
-  | "magnifying-glass"
-  | "moon"
-  | "pencil-1"
-  | "pencil-2"
-  | "plus"
-  | "reset"
-  | "sun"
-  | "trash"
-  | "update"
+	| 'arrow-left'
+	| 'arrow-right'
+	| 'avatar'
+	| 'camera'
+	| 'check'
+	| 'clock'
+	| 'cross-1'
+	| 'exit'
+	| 'file-text'
+	| 'laptop'
+	| 'lock-closed'
+	| 'lock-open-1'
+	| 'magnifying-glass'
+	| 'moon'
+	| 'pencil-1'
+	| 'pencil-2'
+	| 'plus'
+	| 'reset'
+	| 'sun'
+	| 'trash'
+	| 'update'

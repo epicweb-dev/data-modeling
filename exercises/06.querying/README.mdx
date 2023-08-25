@@ -167,7 +167,7 @@ TypeScript doesn't love the `global.` stuff):
 
 ```tsx
 import { PrismaClient } from '@prisma/client'
-import { singleton } from '~/utils/singleton.server.ts'
+import { singleton } from '#app/utils/singleton.server.ts'
 
 export const prisma = singleton('prisma', () => new PrismaClient())
 ```
@@ -183,7 +183,7 @@ to connect to the database as soon as possible.
 
 ```tsx
 import { PrismaClient } from '@prisma/client'
-import { singleton } from '~/utils/singleton.server.ts'
+import { singleton } from '#app/utils/singleton.server.ts'
 
 export const prisma = singleton('prisma', () => {
 	const client = new PrismaClient()

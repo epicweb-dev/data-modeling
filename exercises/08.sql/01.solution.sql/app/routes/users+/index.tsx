@@ -1,9 +1,9 @@
 import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
-import { GeneralErrorBoundary } from '~/components/error-boundary.tsx'
-import { SearchBar } from '~/components/search-bar.tsx'
-import { prisma } from '~/utils/db.server.ts'
-import { cn, getUserImgSrc, useDelayedIsSubmitting } from '~/utils/misc.ts'
+import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import { SearchBar } from '#app/components/search-bar.tsx'
+import { prisma } from '#app/utils/db.server.ts'
+import { cn, getUserImgSrc, useDelayedIsSubmitting } from '#app/utils/misc.ts'
 
 export async function loader({ request }: DataFunctionArgs) {
 	const searchTerm = new URL(request.url).searchParams.get('search')
