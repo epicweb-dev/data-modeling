@@ -1,4 +1,4 @@
-import { KCDShop } from './kcdshop.tsx'
+import os from 'node:os'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import { json, type LinksFunction } from '@remix-run/node'
 import {
@@ -13,13 +13,13 @@ import {
 	useMatches,
 	type MetaFunction,
 } from '@remix-run/react'
-import os from 'node:os'
 import faviconAssetUrl from './assets/favicon.svg'
+import { GeneralErrorBoundary } from './components/error-boundary.tsx'
+import { SearchBar } from './components/search-bar.tsx'
+import { KCDShop } from './kcdshop.tsx'
 import fontStylestylesheetUrl from './styles/font.css'
 import tailwindStylesheetUrl from './styles/tailwind.css'
 import { getEnv } from './utils/env.server.ts'
-import { GeneralErrorBoundary } from './components/error-boundary.tsx'
-import { SearchBar } from './components/search-bar.tsx'
 
 export const links: LinksFunction = () => {
 	return [

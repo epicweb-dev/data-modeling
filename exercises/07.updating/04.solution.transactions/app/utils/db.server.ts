@@ -3,13 +3,13 @@
  * for the purposes of our workshop. The data modeling workshop will cover
  * the proper database.
  */
-import { factory, manyOf, nullable, oneOf, primaryKey } from '@mswjs/data'
-import { PrismaClient } from '@prisma/client'
-import chalk from 'chalk'
 import crypto from 'crypto'
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
+import { factory, manyOf, nullable, oneOf, primaryKey } from '@mswjs/data'
+import { PrismaClient } from '@prisma/client'
+import chalk from 'chalk'
 import { singleton } from './singleton.server.ts'
 
 const prisma = singleton('prisma', () => {
