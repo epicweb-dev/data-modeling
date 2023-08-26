@@ -1,19 +1,27 @@
-const requiredServerEnvs = [
-	'NODE_ENV',
-	'SESSION_SECRET',
-	'HONEYPOT_SECRET',
-] as const
+import { z } from 'zod'
+
+const schema = z.object({
+	NODE_ENV: z.enum(['production', 'development', 'test'] as const),
+	SESSION_SECRET: z.string(),
+	HONEYPOT_SECRET: z.string(),
+})
 
 declare global {
 	namespace NodeJS {
-		interface ProcessEnv
-			extends Record<(typeof requiredServerEnvs)[number], string> {}
+		interface ProcessEnv extends z.infer<typeof schema> {}
 	}
 }
 
-for (const env of requiredServerEnvs) {
-	if (!process.env[env]) {
-		throw new Error(`${env} is required`)
+export function init() {
+	const parsed = schema.safeParse(process.env)
+
+	if (parsed.success === false) {
+		console.error(
+			'❌ Invalid environment variables:',
+			parsed.error.flatten().fieldErrors,
+		)
+
+		throw new Error('Invalid envirmonment variables')
 	}
 }
 
