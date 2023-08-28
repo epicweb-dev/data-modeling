@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { faker } from '@faker-js/faker'
 import { PrismaClient } from '@prisma/client'
 // 💰 import { UniqueEnforcer } from 'enforce-unique'
-import { promiseHash } from 'remix-utils'
+import { promiseHash } from 'remix-utils/promise'
 
 const prisma = new PrismaClient()
 

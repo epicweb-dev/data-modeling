@@ -18,7 +18,7 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 // 🐨 uncomment this import:
 // import { createId as cuid } from '@paralleldrive/cuid2'
 import { useRef, useState } from 'react'
-import { AuthenticityTokenInput } from 'remix-utils'
+import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { floatingToolbarClassName } from '#app/components/floating-toolbar.tsx'
