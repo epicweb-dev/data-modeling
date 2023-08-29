@@ -17,10 +17,10 @@ export async function loader({ request }: DataFunctionArgs) {
 	const like = `%${searchTerm ?? ''}%`
 	// 🐨 rename this to "rawUsers"
 	const users = await prisma.$queryRaw`
-		SELECT user.id, user.username, user.name
-		FROM User AS user
-		WHERE user.username LIKE ${like}
-		OR user.name LIKE ${like}
+		SELECT id, username, name
+		FROM User
+		WHERE username LIKE ${like}
+		OR name LIKE ${like}
 		LIMIT 50
 	`
 

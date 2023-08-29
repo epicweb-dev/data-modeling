@@ -28,11 +28,11 @@ So what we can do instead, is add runtime validation with
 [zod](https://zod.dev):
 
 ```tsx
-import {z} from 'zod'
+import { z } from 'zod'
 const ReportSchema = z({
-  id: z.string()
-  name: z.string()
-  number: z.number()
+	id: z.string(),
+	name: z.string(),
+	number: z.number(),
 })
 const ReportsSchema = z.array(ReportSchema)
 
@@ -42,7 +42,7 @@ FROM ...
 `
 const result = ReportsSchema.safeParse(rawReports)
 if (!result.success) {
-  // handle the error case with result.error.message
+	// handle the error case with result.error.message
 }
 const reports = result.data
 ```

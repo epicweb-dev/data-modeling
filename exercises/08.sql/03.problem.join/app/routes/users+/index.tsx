@@ -25,11 +25,14 @@ export async function loader({ request }: DataFunctionArgs) {
 	const like = `%${searchTerm ?? ''}%`
 	const rawUsers = await prisma.$queryRaw`
 		-- 🐨 add image.id to this select (💰 I alias it with "AS imageId")
-		SELECT user.id, user.username, user.name
-		FROM User AS user
-		-- add LEFT JOIN the Image table here on the user.id and image.userId
-		WHERE user.username LIKE ${like}
-		OR user.name LIKE ${like}
+		SELECT id, username, name
+		-- 🦉 Once I add a join, I like to alias all tables to make things more
+		-- clear, so you may want to alias the "User" table as "user" and the
+		-- "UserImage" table as "image"
+		FROM User
+		-- add LEFT JOIN the Image table here on the id and image.userId
+		WHERE username LIKE ${like}
+		OR name LIKE ${like}
 		LIMIT 50
 	`
 	// 💰 Don't forget to fix the <img /> below 👇
