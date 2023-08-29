@@ -89,16 +89,16 @@
       "path": "exercises/07.updating/02.solution.update"
     },
     {
-      "path": "exercises/07.updating/03.problem.upsert"
+      "path": "exercises/07.updating/03.problem.transactions"
     },
     {
-      "path": "exercises/07.updating/03.solution.upsert"
+      "path": "exercises/07.updating/03.solution.transactions"
     },
     {
-      "path": "exercises/07.updating/04.problem.transactions"
+      "path": "exercises/07.updating/04.problem.nested"
     },
     {
-      "path": "exercises/07.updating/04.solution.transactions"
+      "path": "exercises/07.updating/04.solution.nested"
     },
     {
       "path": "exercises/08.sql/01.problem.sql"

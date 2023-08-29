@@ -78,6 +78,12 @@ function imageHasFile(
 	return Boolean(image.file?.size && image.file?.size > 0)
 }
 
+function imageHasId(
+	image: ImageFieldset,
+): image is ImageFieldset & { id: NonNullable<ImageFieldset['id']> } {
+	return image.id != null
+}
+
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
 	content: z.string().min(contentMinLength).max(contentMaxLength),
@@ -97,20 +103,31 @@ export async function action({ request, params }: DataFunctionArgs) {
 		schema: NoteEditorSchema.transform(async ({ images = [], ...data }) => {
 			return {
 				...data,
-				imageIds: images.map(i => i.id).filter(Boolean),
-				imageUpdates: images
-					.filter(i => i.id && !imageHasFile(i))
-					.map(i => ({
-						id: i.id,
-						altText: i.altText,
-					})),
-				imageUploads: await Promise.all(
-					images.filter(imageHasFile).map(async image => ({
-						id: image.id,
-						altText: image.altText,
-						contentType: image.file.type,
-						blob: Buffer.from(await image.file.arrayBuffer()),
-					})),
+				imageUpdates: await Promise.all(
+					images.filter(imageHasId).map(async i => {
+						if (imageHasFile(i)) {
+							return {
+								id: i.id,
+								altText: i.altText,
+								contentType: i.file.type,
+								blob: Buffer.from(await i.file.arrayBuffer()),
+							}
+						} else {
+							return { id: i.id, altText: i.altText }
+						}
+					}),
+				),
+				newImages: await Promise.all(
+					images
+						.filter(imageHasFile)
+						.filter(i => !i.id)
+						.map(async image => {
+							return {
+								altText: image.altText,
+								contentType: image.file.type,
+								blob: Buffer.from(await image.file.arrayBuffer()),
+							}
+						}),
 				),
 			}
 		}),
