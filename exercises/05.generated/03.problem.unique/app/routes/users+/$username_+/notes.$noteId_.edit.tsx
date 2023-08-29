@@ -64,11 +64,22 @@ const MAX_UPLOAD_SIZE = 1024 * 1024 * 3 // 3MB
 
 const ImageFieldsetSchema = z.object({
 	id: z.string().optional(),
-	file: z.instanceof(File).refine(file => {
-		return file.size <= MAX_UPLOAD_SIZE
-	}, 'File size must be less than 3MB'),
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(file => {
+			return !file || file.size <= MAX_UPLOAD_SIZE
+		}, 'File size must be less than 3MB'),
 	altText: z.string().optional(),
 })
+
+type ImageFieldset = z.infer<typeof ImageFieldsetSchema>
+
+function imageHasFile(
+	image: ImageFieldset,
+): image is ImageFieldset & { file: NonNullable<ImageFieldset['file']> } {
+	return Boolean(image.file?.size && image.file?.size > 0)
+}
 
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),

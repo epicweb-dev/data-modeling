@@ -105,7 +105,7 @@ async function seed() {
 					{
 						title: faker.lorem.sentence(),
 						content: faker.lorem.paragraphs(),
-						// 🐨 add a random number of random images to the notes (0-5)
+						// 🐨 add a random number of random images to the notes (0-3)
 					},
 					{
 						title: faker.lorem.sentence(),

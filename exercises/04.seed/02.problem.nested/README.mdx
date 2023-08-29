@@ -1,31 +1,41 @@
 # Nested Writes
 
-Check out the code for the first image we're creating:
+Check out the code for the note we're creating:
 
-```ts lines=4-11
-const newImage1 = await prisma.image.create({
+```ts lines=9-24
+await prisma.note.create({
 	data: {
-		altText: 'an adorable koala cartoon illustration',
-		file: {
-			create: {
-				contentType: 'image/png',
-				blob: await fs.promises.readFile(
-					'./tests/fixtures/images/kody-notes/cute-koala.png',
-				),
-			},
+		id: 'd27a197e',
+		title: 'Basic Koala Facts',
+		content:
+			'Koalas are found in the eucalyptus forests of eastern Australia. They have grey fur with a cream-coloured chest, and strong, clawed feet, perfect for living in the branches of trees!',
+		ownerId: kody.id,
+		images: {
+			create: [
+				{
+					altText: 'an adorable koala cartoon illustration',
+					contentType: 'image/png',
+					blob: await fs.promises.readFile(
+						'./tests/fixtures/images/kody-notes/cute-koala.png',
+					),
+				},
+				{
+					altText: 'a cartoon illustration of a koala in a tree eating',
+					contentType: 'image/png',
+					blob: await fs.promises.readFile(
+						'./tests/fixtures/images/kody-notes/koala-eating.png',
+					),
+				},
+			],
 		},
 	},
 })
 ```
 
-Notice that we're actually creating two records instead of just one? This is
-called a nested query. It's required because the `Image` model has a
-`file` field that is a `File` model. We need to create the `File` record first
-and then use the `id` of that record to create the `Image` record.
+Notice that we're actually creating two images while we create the note? This is
+called a nested query.
 
-Prisma manages this for us by nesting the queries. This generates more optimal
-SQL queries than running multiple queries. It also helps to ensure that if
-there's an error we don't have data dangling around without an owner.
+This generates more optimal SQL queries than running multiple queries.
 
 And it also manages connecting the foreign keys for us. Without using nested
 queries, we have to do that ourselves, which is why we have to update our note

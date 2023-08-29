@@ -61,11 +61,22 @@ const MAX_UPLOAD_SIZE = 1024 * 1024 * 3 // 3MB
 
 const ImageFieldsetSchema = z.object({
 	id: z.string().optional(),
-	file: z.instanceof(File).refine(file => {
-		return file.size <= MAX_UPLOAD_SIZE
-	}, 'File size must be less than 3MB'),
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(file => {
+			return !file || file.size <= MAX_UPLOAD_SIZE
+		}, 'File size must be less than 3MB'),
 	altText: z.string().optional(),
 })
+
+type ImageFieldset = z.infer<typeof ImageFieldsetSchema>
+
+function imageHasFile(
+	image: ImageFieldset,
+): image is ImageFieldset & { file: NonNullable<ImageFieldset['file']> } {
+	return Boolean(image.file?.size && image.file?.size > 0)
+}
 
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
@@ -86,15 +97,19 @@ export async function action({ request, params }: DataFunctionArgs) {
 		schema: NoteEditorSchema.transform(async ({ images = [], ...data }) => {
 			return {
 				...data,
-				images: await Promise.all(
-					images.map(async image => ({
+				imageIds: images.map(i => i.id).filter(Boolean),
+				imageUpdates: images
+					.filter(i => i.id && !imageHasFile(i))
+					.map(i => ({
+						id: i.id,
+						altText: i.altText,
+					})),
+				imageUploads: await Promise.all(
+					images.filter(imageHasFile).map(async image => ({
 						id: image.id,
 						altText: image.altText,
 						contentType: image.file.type,
-						blob:
-							image.file.size > 0
-								? Buffer.from(await image.file.arrayBuffer())
-								: null,
+						blob: Buffer.from(await image.file.arrayBuffer()),
 					})),
 				),
 			}
@@ -110,25 +125,15 @@ export async function action({ request, params }: DataFunctionArgs) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 	// 🐨 uncomment this:
-	// const { title, content, images = [] } = submission.value
+	// const { title, content, imageUpdates = [], imageIds } = submission.value
 
 	// 🐨 Update the note's title and content
-	// 🐨 add a deleteMany on the images where the id is not in the ids in the
-	// images array (💰 images.map(i => i.id).filter(Boolean))
-	// 📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#notin
-	// 📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#deletemany-1
-
-	// 🐨 uncomment this:
-	// for (const image of images) {
-	// 	const { blob } = image
-	// 	if (blob) {
-	// 		// we'll handle this next
-	// 	} else if (image.id) {
-	// 		// 🐨 update the note image where the id is the image.id and
-	// 		// set the altText to image.altText
-	// 		// make sure to select the id and return it.
-	// 	}
-	// }
+	// 🐨 for the images property, we want to do two things:
+	//   - add a deleteMany on the images "notIn" the imageIds array
+	//     📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#notin
+	//     📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#deletemany-1
+	//   - update the images that are in the imageUpdates array
+	//     📜 https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#updatemany
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)
 }

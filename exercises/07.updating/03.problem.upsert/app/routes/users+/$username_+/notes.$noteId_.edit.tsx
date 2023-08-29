@@ -7,6 +7,8 @@ import {
 	type FieldConfig,
 } from '@conform-to/react'
 import { getFieldsetConstraint, parse } from '@conform-to/zod'
+// 🐨 uncomment this import:
+// import { createId as cuid } from '@paralleldrive/cuid2'
 import {
 	unstable_createMemoryUploadHandler as createMemoryUploadHandler,
 	json,
@@ -15,8 +17,6 @@ import {
 	type DataFunctionArgs,
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-// 🐨 uncomment this import:
-// import { createId as cuid } from '@paralleldrive/cuid2'
 import { useRef, useState } from 'react'
 import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
 import { z } from 'zod'
@@ -63,11 +63,22 @@ const MAX_UPLOAD_SIZE = 1024 * 1024 * 3 // 3MB
 
 const ImageFieldsetSchema = z.object({
 	id: z.string().optional(),
-	file: z.instanceof(File).refine(file => {
-		return file.size <= MAX_UPLOAD_SIZE
-	}, 'File size must be less than 3MB'),
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(file => {
+			return !file || file.size <= MAX_UPLOAD_SIZE
+		}, 'File size must be less than 3MB'),
 	altText: z.string().optional(),
 })
+
+type ImageFieldset = z.infer<typeof ImageFieldsetSchema>
+
+function imageHasFile(
+	image: ImageFieldset,
+): image is ImageFieldset & { file: NonNullable<ImageFieldset['file']> } {
+	return Boolean(image.file?.size && image.file?.size > 0)
+}
 
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
@@ -88,15 +99,19 @@ export async function action({ request, params }: DataFunctionArgs) {
 		schema: NoteEditorSchema.transform(async ({ images = [], ...data }) => {
 			return {
 				...data,
-				images: await Promise.all(
-					images.map(async image => ({
+				imageIds: images.map(i => i.id).filter(Boolean),
+				imageUpdates: images
+					.filter(i => i.id && !imageHasFile(i))
+					.map(i => ({
+						id: i.id,
+						altText: i.altText,
+					})),
+				imageUploads: await Promise.all(
+					images.filter(imageHasFile).map(async image => ({
 						id: image.id,
 						altText: image.altText,
 						contentType: image.file.type,
-						blob:
-							image.file.size > 0
-								? Buffer.from(await image.file.arrayBuffer())
-								: null,
+						blob: Buffer.from(await image.file.arrayBuffer()),
 					})),
 				),
 			}
@@ -112,40 +127,49 @@ export async function action({ request, params }: DataFunctionArgs) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 
-	const { title, content, images = [] } = submission.value
+	const {
+		title,
+		content,
+		// 🐨 uncomment this:
+		// imageUploads = [],
+		imageUpdates = [],
+		imageIds,
+	} = submission.value
 
 	// 🐨 assign this to a variable called `note`
 	await prisma.note.update({
-		select: { id: true },
+		select: { id: true, owner: { select: { username: true } } },
 		where: { id: params.noteId },
 		data: {
 			title,
 			content,
 			images: {
-				deleteMany: { id: { notIn: images.map(i => i.id).filter(Boolean) } },
+				deleteMany: { id: { notIn: imageIds } },
+				updateMany: imageUpdates.map(updates => ({
+					where: { id: updates.id },
+					data: updates,
+				})),
 			},
 		},
 	})
 
-	for (const image of images) {
-		const { blob } = image
-		if (blob) {
-			// 🐨 get the `id` to use for the upsert
-			// 💰 const id = image.id ?? cuid()
-			// 💰 check above for the cuid import
-			// 🐨 Perform the image upsert:
-			//   🐨 make sure to select the id
-			//   🐨 where the id matches the id variable above
-			//   🐨 in the create case, set the id (to the variable above), altText, blob, contentType, and noteId to the note.id
-			//   🐨 in the update case, set the id (to a new cuid()), altText, blob, contentType, and noteId to the note.id
-		} else if (image.id) {
-			await prisma.noteImage.update({
-				select: { id: true },
-				where: { id: image.id },
-				data: { altText: image.altText },
-			})
-		}
-	}
+	// 🐨 iterate over the imageUploads and then...
+	// 🐨 Perform the image upsert:
+	//   🐨 make sure to select the id
+	//   🐨 where the id matches the image.id
+	//     💰 we're going to do a trick here...
+	//     if the image doesn't exist yet (no id) we want to create it, so if
+	//     there's no image.id, then fallback to something that won't match
+	//     (like '__new_image__') which will send us into the create case.
+
+	//   🐨 in the create case, set the altText, blob, contentType, and noteId to the note.id
+	//   🐨 in the update case, set the id (to a new cuid()), altText, blob, contentType, and noteId to the note.id
+
+	// 🦉 You may be wondering why we need to set the id in the update case.
+	// our image id is used for caching, so if we don't update the id, then
+	// the image will be cached with the old id and clients will display the old
+	// image until their cache is cleared. By changing the id, we ensure that
+	// the image is cached with the new id and clients will display the new image.
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)
 }

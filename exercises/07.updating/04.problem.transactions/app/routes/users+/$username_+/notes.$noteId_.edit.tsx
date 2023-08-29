@@ -62,11 +62,22 @@ const MAX_UPLOAD_SIZE = 1024 * 1024 * 3 // 3MB
 
 const ImageFieldsetSchema = z.object({
 	id: z.string().optional(),
-	file: z.instanceof(File).refine(file => {
-		return file.size <= MAX_UPLOAD_SIZE
-	}, 'File size must be less than 3MB'),
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(file => {
+			return !file || file.size <= MAX_UPLOAD_SIZE
+		}, 'File size must be less than 3MB'),
 	altText: z.string().optional(),
 })
+
+type ImageFieldset = z.infer<typeof ImageFieldsetSchema>
+
+function imageHasFile(
+	image: ImageFieldset,
+): image is ImageFieldset & { file: NonNullable<ImageFieldset['file']> } {
+	return Boolean(image.file?.size && image.file?.size > 0)
+}
 
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
@@ -87,15 +98,19 @@ export async function action({ request, params }: DataFunctionArgs) {
 		schema: NoteEditorSchema.transform(async ({ images = [], ...data }) => {
 			return {
 				...data,
-				images: await Promise.all(
-					images.map(async image => ({
+				imageIds: images.map(i => i.id).filter(Boolean),
+				imageUpdates: images
+					.filter(i => i.id && !imageHasFile(i))
+					.map(i => ({
+						id: i.id,
+						altText: i.altText,
+					})),
+				imageUploads: await Promise.all(
+					images.filter(imageHasFile).map(async image => ({
 						id: image.id,
 						altText: image.altText,
 						contentType: image.file.type,
-						blob:
-							image.file.size > 0
-								? Buffer.from(await image.file.arrayBuffer())
-								: null,
+						blob: Buffer.from(await image.file.arrayBuffer()),
 					})),
 				),
 			}
@@ -111,48 +126,48 @@ export async function action({ request, params }: DataFunctionArgs) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
 
-	const { title, content, images = [] } = submission.value
+	const {
+		title,
+		content,
+		imageUploads = [],
+		imageUpdates = [],
+		imageIds,
+	} = submission.value
 
 	// 🐨 start the transaction here:
+	// 🐨 update prisma here to use the transactional prisma client
 	const note = await prisma.note.update({
-		select: { id: true },
+		select: { id: true, owner: { select: { username: true } } },
 		where: { id: params.noteId },
 		data: {
 			title,
 			content,
 			images: {
-				deleteMany: { id: { notIn: images.map(i => i.id).filter(Boolean) } },
+				deleteMany: { id: { notIn: imageIds } },
+				updateMany: imageUpdates.map(updates => ({
+					where: { id: updates.id },
+					data: updates,
+				})),
 			},
 		},
 	})
 
-	for (const image of images) {
-		const { blob } = image
-		if (blob) {
-			const id = image.id ?? cuid()
-			// 🐨 update prisma here to use the transactional prisma client
-			await prisma.noteImage.upsert({
-				select: { id: true },
-				where: { id },
-				create: { ...image, blob, noteId: note.id },
-				update: {
-					...image,
-					blob,
-					// update the id since it is used for caching
-					id: cuid(),
-					noteId: note.id,
-				},
-			})
-		} else if (image.id) {
-			// 🐨 update prisma here to use the transactional prisma client
-			await prisma.noteImage.update({
-				select: { id: true },
-				where: { id: image.id },
-				data: { altText: image.altText },
-			})
-		}
+	for (const image of imageUploads) {
+		// 🐨 update prisma here to use the transactional prisma client
+		await prisma.noteImage.upsert({
+			select: { id: true },
+			where: { id: image.id ?? '__new_image__' },
+			create: { ...image, noteId: note.id },
+			update: {
+				...image,
+				// update the id since it is used for caching
+				id: cuid(),
+				noteId: note.id,
+			},
+		})
 	}
 
+	// test the transaction by uncommenting the following line:
 	// throw new Error('🧝‍♂️ Kellie gotcha. kcd.im/promise')
 
 	// 🐨 the transaction ends here

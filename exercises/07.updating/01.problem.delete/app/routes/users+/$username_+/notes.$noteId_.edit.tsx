@@ -61,11 +61,22 @@ const MAX_UPLOAD_SIZE = 1024 * 1024 * 3 // 3MB
 
 const ImageFieldsetSchema = z.object({
 	id: z.string().optional(),
-	file: z.instanceof(File).refine(file => {
-		return file.size <= MAX_UPLOAD_SIZE
-	}, 'File size must be less than 3MB'),
+	file: z
+		.instanceof(File)
+		.optional()
+		.refine(file => {
+			return !file || file.size <= MAX_UPLOAD_SIZE
+		}, 'File size must be less than 3MB'),
 	altText: z.string().optional(),
 })
+
+type ImageFieldset = z.infer<typeof ImageFieldsetSchema>
+
+function imageHasFile(
+	image: ImageFieldset,
+): image is ImageFieldset & { file: NonNullable<ImageFieldset['file']> } {
+	return Boolean(image.file?.size && image.file?.size > 0)
+}
 
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
@@ -86,15 +97,19 @@ export async function action({ request, params }: DataFunctionArgs) {
 		schema: NoteEditorSchema.transform(async ({ images = [], ...data }) => {
 			return {
 				...data,
-				images: await Promise.all(
-					images.map(async image => ({
+				imageIds: images.map(i => i.id).filter(Boolean),
+				imageUpdates: images
+					.filter(i => i.id && !imageHasFile(i))
+					.map(i => ({
+						id: i.id,
+						altText: i.altText,
+					})),
+				imageUploads: await Promise.all(
+					images.filter(imageHasFile).map(async image => ({
 						id: image.id,
 						altText: image.altText,
 						contentType: image.file.type,
-						blob:
-							image.file.size > 0
-								? Buffer.from(await image.file.arrayBuffer())
-								: null,
+						blob: Buffer.from(await image.file.arrayBuffer()),
 					})),
 				),
 			}
@@ -109,7 +124,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 	if (!submission.value) {
 		return json({ status: 'error', submission } as const, { status: 400 })
 	}
-	// const { title, content, images = [] } = submission.value
+	// const { title, content, imageUpdates = [], imageIds } = submission.value
 	// TODO: you need to handle the update for these in the next exercise...
 
 	return redirect(`/users/${params.username}/notes/${params.noteId}`)

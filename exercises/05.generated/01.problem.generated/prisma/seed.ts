@@ -1,5 +1,5 @@
-// 💰 import { faker } from '@faker-js/faker'
 import fs from 'node:fs'
+// 💰 import { faker } from '@faker-js/faker'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
