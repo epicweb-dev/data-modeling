@@ -24,11 +24,11 @@ export async function loader({ request }: DataFunctionArgs) {
 
 	const like = `%${searchTerm ?? ''}%`
 	const rawUsers = await prisma.$queryRaw`
-		SELECT user.id, user.username, user.name, image.id AS imageId
-		FROM User AS user
-		LEFT JOIN UserImage AS image ON user.id = image.userId
-		WHERE user.username LIKE ${like}
-		OR user.name LIKE ${like}
+		SELECT User.id, User.username, User.name, UserImage.id AS imageId
+		FROM User
+		LEFT JOIN UserImage ON UserImage.userId = User.id
+		WHERE User.username LIKE ${like}
+		OR User.name LIKE ${like}
 		LIMIT 50
 	`
 
