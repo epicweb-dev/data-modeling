@@ -75,18 +75,6 @@ const ImageFieldsetSchema = z.object({
 
 type ImageFieldset = z.infer<typeof ImageFieldsetSchema>
 
-function imageHasFile(
-	image: ImageFieldset,
-): image is ImageFieldset & { file: NonNullable<ImageFieldset['file']> } {
-	return Boolean(image.file?.size && image.file?.size > 0)
-}
-
-function imageHasId(
-	image: ImageFieldset,
-): image is ImageFieldset & { id: NonNullable<ImageFieldset['id']> } {
-	return image.id != null
-}
-
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
 	content: z.string().min(contentMinLength).max(contentMaxLength),
