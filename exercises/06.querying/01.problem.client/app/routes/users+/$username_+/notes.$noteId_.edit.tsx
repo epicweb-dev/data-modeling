@@ -73,8 +73,6 @@ const ImageFieldsetSchema = z.object({
 	altText: z.string().optional(),
 })
 
-type ImageFieldset = z.infer<typeof ImageFieldsetSchema>
-
 const NoteEditorSchema = z.object({
 	title: z.string().min(titleMinLength).max(titleMaxLength),
 	content: z.string().min(contentMinLength).max(contentMaxLength),
