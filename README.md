@@ -11,7 +11,7 @@
 <div align="center">
   <a
     alt="Epic Web logo with the words Deployed Version"
-    href="https://epicweb-dev-data-modeling.fly.dev/"
+    href="https://data.epicweb.dev/"
   >
     <img
       width="300px"
