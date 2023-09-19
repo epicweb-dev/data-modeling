@@ -240,7 +240,7 @@ export default function NoteEdit() {
 					</div>
 					<Button
 						className="mt-3"
-						{...list.append(fields.images.name, { defaultValue: {} })}
+						{...list.insert(fields.images.name, { defaultValue: {} })}
 					>
 						<span aria-hidden>
 							<Icon name="plus">Image</Icon>
