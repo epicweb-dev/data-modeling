@@ -57,6 +57,14 @@ add a `NotePDF` model later without impacting other models than to try and get
 all polymorphic with a single generic `File` model (polymorphism and databases
 don't mix well).
 
+Here's a visualized model of this:
+
+![visual representation of polymorphism as described with a 👎 emoji](https://github.com/epicweb-dev/web-auth/assets/1500684/e8008187-7367-4f9f-92d2-f51453c4c790)
+
+And here's what we're going to do instead:
+
+![visual representation of duplication as described with a 👍 emoji](https://github.com/epicweb-dev/web-auth/assets/1500684/96a163f9-ef82-4155-9646-fadaa8a6b565)
+
 With these new models in place, we can connect them to the `Note` and `User`
 models. So we'll have the following relationships:
 
