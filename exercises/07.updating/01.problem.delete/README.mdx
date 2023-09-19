@@ -6,4 +6,10 @@ because the update note bit is going to be a little more complicated 😅
 Please migrate our delete note functionality from the in-memory `db` to our
 `prisma` client.
 
+<callout-info>
+	Now that you're able to delete notes, keep in mind you can always restore them
+	by re-running the `seed` command: `npx prisma db seed`. You do not need to
+	restart the server to see changes.
+</callout-info>
+
 - [📜 Prisma Client Reference: `delete`](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#delete)

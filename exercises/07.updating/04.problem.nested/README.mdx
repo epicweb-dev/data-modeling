@@ -1,1 +1,40 @@
 # Nested Update
+
+👨‍💼 the Prisma Client is pretty powerful and expressive with its nested queries.
+For example:
+
+```tsx
+await prisma.ship.update({
+	select: { id: true },
+	where: { id: 1 },
+	data: {
+		name: 'The Black Pearl',
+		captain: {
+			update: {
+				name: 'Jack Sparrow',
+			},
+		},
+	},
+})
+```
+
+This does not result in a single query. This is actually multiple queries in a
+single transaction! Here's an example of what the queries generated from that
+nested update may look like:
+
+```sql
+BEGIN
+SELECT "public"."Ship"."id" FROM "public"."Ship" WHERE ("public"."Ship"."id" = $1 AND 1=1)
+SELECT "public"."Ship"."id", "public"."Ship"."name", "public"."Ship"."captainId" FROM "public"."Ship" WHERE ("public"."Ship"."id" = $1 AND 1=1) OFFSET $2
+UPDATE "public"."Ship" SET "name" = $1 WHERE ("public"."Ship"."id" = $2 AND 1=1)
+COMMIT
+```
+
+Cool right? So, turns out our entire transaction can be represented as a nested
+query with Prisma rather than multiple calls. The images just need multiple
+subqueries to handle the delete, update, and create that can happen as a part
+of this note update. Give it a shot and think about which approach you prefer.
+
+- [📜 Prisma nested `deleteMany`](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#deletemany-1)
+- [📜 Prisma nested `updateMany`](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#updatemany-1)
+- [📜 Prisma nested `create`](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#create-1)

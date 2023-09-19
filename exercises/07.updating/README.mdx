@@ -69,5 +69,66 @@ is not supported.
 
 You can also perform nested queries for these as well.
 
+## Transactions
+
+Let's say you're a bank and you're building a system to allow users to send
+money to each other. This will be a multi-step process that may look something
+like this:
+
+1. Check that the user has enough money in their account to send the money
+2. Remove the money from the user's account
+3. Add the money to the recipient's account
+
+If step 3 fails, we'll end up with a user who has less money than they should
+have! It would be better if we could roll back the changes we made in step 2.
+Kind of an "all or nothing" approach. That's what a "transaction" is (see why
+I used a banking metaphor? 😅). And transactions are supported by SQLite and
+Prisma natively. Here's the SQL syntax for a SQL-based transaction:
+
+```sql
+BEGIN TRANSACTION;
+UPDATE table_name
+SET column1 = value1, column2 = value2, ...
+WHERE condition;
+UPDATE table_name
+SET column1 = value1, column2 = value2, ...
+WHERE condition;
+COMMIT;
+```
+
+And here's the Prisma syntax:
+
+```tsx
+await prisma.$transaction([
+	prisma.rocket.update({
+		where: { id: 1 },
+		data: { name: 'Falcon 9' },
+	}),
+	prisma.rocket.update({
+		where: { id: 2 },
+		data: { name: 'Falcon Heavy' },
+	}),
+])
+```
+
+Personally, I'm not a fan of the array API and I prefer the following callback
+API:
+
+```tsx
+await prisma.$transaction(async $prisma => {
+	await $prisma.rocket.update({
+		where: { id: 1 },
+		data: { name: 'Falcon 9' },
+	})
+	await $prisma.rocket.update({
+		where: { id: 2 },
+		data: { name: 'Falcon Heavy' },
+	})
+})
+```
+
+In either case, it's the same. If any of the queries fail, the entire
+transaction will fail and none of the changes will be applied.
+
 - [📜 Prisma Client Reference: Model Queries](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#model-queries)
 - [📜 Prisma Client Reference: Nested Queries](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#nested-queries)

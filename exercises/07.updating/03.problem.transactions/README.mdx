@@ -1,1 +1,31 @@
 # Transactions
+
+👨‍💼 Whoops! So we've got an issue. If one of the steps in our multi-step process
+to update a note fails, we'll end up with a halfway updated note. This is
+problematic for our situation, but it could be worse (like in the banking
+example we had in the introduction to this exercise).
+
+As a reminder, here's the example of prisma's transaction API:
+
+```tsx
+await prisma.$transaction(async $prisma => {
+	await $prisma.rocket.update({
+		where: { id: 1 },
+		data: { name: 'Falcon 9' },
+	})
+	await $prisma.rocket.update({
+		where: { id: 2 },
+		data: { name: 'Falcon Heavy' },
+	})
+})
+```
+
+With that, you should be enough to get going! Let's put all of these note update
+steps in a single transaction.
+
+🧝‍♂️ If you'd like to test things out, I left a comment in there for an error.
+With that error, you should be able to update a note and get deleted images,
+but no new images or updated images. Your job is to make it so it all succeeds
+or fails together.
+
+- [📜 Prisma `$transaction`](https://www.prisma.io/docs/guides/performance-and-optimization/prisma-client-transactions-guide#transaction-api)

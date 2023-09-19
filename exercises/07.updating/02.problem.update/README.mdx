@@ -1,22 +1,22 @@
 # Update
 
 👨‍💼 We need to fix our note edit so we can save edits to our notes in the SQLite
-database.
+database instead of our old in-memory database.
 
 So here's what I want you to do, and the emoji in the file will help you:
 
 1. Update the note
 2. Delete the images that are no longer in the note
-3. Update the images that are in the note
+3. Update the images that are still in the note
 4. Add the new images to the note
 
 ## Caching and IDs
 
 Our images are cached with `Cache-Control` headers, so if the an image is
 updated, we could end up with a stale image in the browser cache. To fix this,
-we can change the ID of the image if the user updates it.
-
-We'll be using the module
+we can change the ID of the image if the user updates it. So even though the
+database normally creates IDs for us, we're going to need to create our own ID
+in this case. We'll be using the module
 [`@paralleldrive/cuid2`](https://npm.im/@paralleldrive/cuid2) to generate our
 `cuid` in this case.
 
