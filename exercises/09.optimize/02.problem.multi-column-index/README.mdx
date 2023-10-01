@@ -1,4 +1,4 @@
-# Multi-Column Index
+x# Multi-Column Index
 
 👨‍💼 As we've accumulated more and more users who have more and more notes, we've
 found that our query for the user list is getting slower and slower and using
@@ -323,7 +323,7 @@ go.
 </callout-success>
 
 So in our case, we look at the `WHERE` and then the `ORDER BY` to determine our
-indexes. We're referencing the `updatedAt` in the `ORDER BY` and the `owerId` in
+indexes. We're referencing the `updatedAt` in the `ORDER BY` and the `ownerId` in
 the `WHERE`. We need to combine these columns in a single index to optimize this
 query.
 
