@@ -35,7 +35,7 @@ import {
 	getNoteImgSrc,
 	invariantResponse,
 	useIsPending,
-} from '#app/utils/misc.ts'
+} from '#app/utils/misc.tsx'
 
 export async function loader({ params }: DataFunctionArgs) {
 	const note = await prisma.note.findFirst({

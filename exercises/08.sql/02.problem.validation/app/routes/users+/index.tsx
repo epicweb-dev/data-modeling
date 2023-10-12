@@ -3,7 +3,7 @@ import { Link, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
 import { prisma } from '#app/utils/db.server.ts'
-import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.ts'
+import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.tsx'
 
 // 🐨 add a new schema here for the search results. Each entry should have an
 // id, username, and (nullable) name

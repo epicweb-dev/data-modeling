@@ -2,7 +2,7 @@ import { json, type DataFunctionArgs } from '@remix-run/node'
 import { Link, NavLink, Outlet, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { db } from '#app/utils/db.server.ts'
-import { cn, getUserImgSrc, invariantResponse } from '#app/utils/misc.ts'
+import { cn, getUserImgSrc, invariantResponse } from '#app/utils/misc.tsx'
 
 export async function loader({ params }: DataFunctionArgs) {
 	// 🐨 swap this for a prisma query that selects only the data you need and

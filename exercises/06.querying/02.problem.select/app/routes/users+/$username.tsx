@@ -5,7 +5,7 @@ import { Spacer } from '#app/components/spacer.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 // 🐨 swap "db" for "prisma"
 import { db } from '#app/utils/db.server.ts'
-import { getUserImgSrc, invariantResponse } from '#app/utils/misc.ts'
+import { getUserImgSrc, invariantResponse } from '#app/utils/misc.tsx'
 
 export async function loader({ params }: DataFunctionArgs) {
 	// 🐨 delete this query for one using prisma

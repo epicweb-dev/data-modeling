@@ -2,7 +2,7 @@
 // then run "npm run build:icons"
 
 import { type SVGProps } from 'react'
-import { cn } from '#app/utils/misc.ts'
+import { cn } from '#app/utils/misc.tsx'
 import href from './icon.svg'
 export { href }
 

@@ -3,7 +3,7 @@ import { Link, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
 import { db } from '#app/utils/db.server.ts'
-import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.ts'
+import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.tsx'
 
 export async function loader({ request }: DataFunctionArgs) {
 	const searchTerm = new URL(request.url).searchParams.get('search')
