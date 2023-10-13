@@ -11,6 +11,7 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import morgan from 'morgan'
+import { prisma } from '#app/utils/db.server.ts'
 
 // @ts-ignore - this file may not exist if you haven't built yet, but it will
 // definitely exist by the time the dev or prod server actually runs.
@@ -172,14 +173,27 @@ closeWithGrace(async () => {
 })
 
 // during dev, we'll keep the build module up to date with the changes
+const dirname = path.dirname(fileURLToPath(import.meta.url))
 if (process.env.NODE_ENV === 'development') {
 	async function reloadBuild() {
 		devBuild = await import(`${BUILD_PATH}?update=${Date.now()}`)
 		broadcastDevReady(devBuild)
 	}
 
-	const dirname = path.dirname(fileURLToPath(import.meta.url))
 	const watchPath = path.join(dirname, BUILD_PATH).replace(/\\/g, '/')
 	const watcher = chokidar.watch(watchPath, { ignoreInitial: true })
 	watcher.on('all', reloadBuild)
 }
+
+// this ensures that when you click "Set to playground" prisma disconnects from
+// the database if it gets deleted.
+const dbWatcher = chokidar.watch(
+	path.join(dirname, '../prisma/data.db').replace(/\\/g, '/'),
+	{ ignoreInitial: true },
+)
+let timeout: ReturnType<typeof setTimeout>
+dbWatcher.on('change', () => {
+	clearTimeout(timeout)
+	timeout = setTimeout(() => prisma.$disconnect(), 300)
+})
+closeWithGrace(() => dbWatcher.close())
