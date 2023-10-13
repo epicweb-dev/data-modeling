@@ -4,24 +4,18 @@ import { createRequestHandler } from '@remix-run/express'
 import { broadcastDevReady, type ServerBuild } from '@remix-run/node'
 import { ip as ipAddress } from 'address'
 import chalk from 'chalk'
-import chokidar from 'chokidar'
 import closeWithGrace from 'close-with-grace'
 import compression from 'compression'
 import express from 'express'
 import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import morgan from 'morgan'
-import { prisma } from '#app/utils/db.server.ts'
-
-// @ts-ignore - this file may not exist if you haven't built yet, but it will
-// definitely exist by the time the dev or prod server actually runs.
-import * as remixBuild from '../build/index.js'
 
 const MODE = process.env.NODE_ENV
-
 const BUILD_PATH = '../build/index.js'
+const WATCH_PATH = '../build/version.txt'
 
-const build = remixBuild as unknown as ServerBuild
+const build: ServerBuild = await import(BUILD_PATH)
 let devBuild = build
 
 const app = express()
@@ -173,27 +167,37 @@ closeWithGrace(async () => {
 })
 
 // during dev, we'll keep the build module up to date with the changes
-const dirname = path.dirname(fileURLToPath(import.meta.url))
 if (process.env.NODE_ENV === 'development') {
 	async function reloadBuild() {
 		devBuild = await import(`${BUILD_PATH}?update=${Date.now()}`)
 		broadcastDevReady(devBuild)
 	}
 
-	const watchPath = path.join(dirname, BUILD_PATH).replace(/\\/g, '/')
-	const watcher = chokidar.watch(watchPath, { ignoreInitial: true })
-	watcher.on('all', reloadBuild)
-}
+	const chokidar = await import('chokidar')
+	const dirname = path.dirname(fileURLToPath(import.meta.url))
+	const watchPath = path.join(dirname, WATCH_PATH).replace(/\\/g, '/')
 
-// this ensures that when you click "Set to playground" prisma disconnects from
-// the database if it gets deleted.
-const dbWatcher = chokidar.watch(
-	path.join(dirname, '../prisma/data.db').replace(/\\/g, '/'),
-	{ ignoreInitial: true },
-)
-let timeout: ReturnType<typeof setTimeout>
-dbWatcher.on('change', () => {
-	clearTimeout(timeout)
-	timeout = setTimeout(() => prisma.$disconnect(), 300)
-})
-closeWithGrace(() => dbWatcher.close())
+	const buildWatcher = chokidar
+		.watch(watchPath, { ignoreInitial: true })
+		.on('add', reloadBuild)
+		.on('change', reloadBuild)
+
+	// this ensures that when you click "Set to playground" prisma disconnects from
+	// the database if it gets deleted.
+	const dbWatcher = chokidar.watch(
+		path.join(dirname, '../prisma/data.db').replace(/\\/g, '/'),
+		{ ignoreInitial: true },
+	)
+	let timeout: ReturnType<typeof setTimeout>
+	dbWatcher.on('change', () => {
+		clearTimeout(timeout)
+		timeout = setTimeout(async () => {
+			const { prisma } = await import('#app/utils/db.server.ts')
+			prisma.$disconnect()
+		}, 300)
+	})
+	closeWithGrace(async () => {
+		await buildWatcher.close()
+		await dbWatcher.close()
+	})
+}
