@@ -62,7 +62,7 @@ export function TextareaField({
 	className,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
-	textareaProps: React.InputHTMLAttributes<HTMLTextAreaElement>
+	textareaProps: React.TextareaHTMLAttributes<HTMLTextAreaElement>
 	errors?: ListOfErrors
 	className?: string
 }) {
