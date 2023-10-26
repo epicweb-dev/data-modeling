@@ -1,5 +1,5 @@
 <div>
-  <h1 align="center"><a href="https://kentcdodds.com/workshops">💾 Data Modeling Deep Dive</a></h1>
+  <h1 align="center"><a href="https://www.epicweb.dev/workshops/data-modeling-deep-dive">💾 Data Modeling Deep Dive</a></h1>
   <strong>
     Model and query your data with confidence
   </strong>
