@@ -189,6 +189,7 @@ import { singleton } from '#app/utils/singleton.server.ts'
 
 export const prisma = singleton('prisma', () => {
 	const client = new PrismaClient()
+	client.$connect();
 	return client
 })
 ```
