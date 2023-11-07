@@ -31,7 +31,7 @@ So what we can do instead, is add runtime validation with
 
 ```tsx
 import { z } from 'zod'
-const ReportSchema = z({
+const ReportSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	number: z.number(),
