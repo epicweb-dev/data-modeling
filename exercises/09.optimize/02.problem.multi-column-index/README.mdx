@@ -215,7 +215,7 @@ QUERY PLAN
 ```
 
 Whoops! It is using a index for the `ORDER BY`, but it's not telling us that
-it's likely note using an index for the `LIKE` (according to
+it's likely not using an index for the `LIKE` (according to
 [the rules](https://www.sqlite.org/optoverview.html#the_like_optimization)).
 
 🐨 Let's add the `OR` for the `user.name`:
