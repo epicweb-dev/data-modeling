@@ -26,7 +26,7 @@ import { singleton } from './singleton.server.ts'
 
 // 🦉 If you want to test things out before moving on, go ahead and uncomment this:
 // console.log(await prisma.user.findMany())
-// The run the app and you should see the query log in the console.
+// Then run the app and you should see the query log in the console.
 
 // 🦉 We'll keep this stuff below around until we've finished migrating everything over to prisma
 const getId = () => crypto.randomBytes(16).toString('hex').slice(0, 8)
