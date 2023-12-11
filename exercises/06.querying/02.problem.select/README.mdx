@@ -35,7 +35,7 @@ Let's migrate our Profile page to use our prisma client and select only the
 fields we need for our UI.
 
 `select` is also applicable for `create` and `update` operations as well. If you
-don't care about the return value of an operation, then I recommend you use
+don't care about the return value of an operation, then I recommend you
 specify a select that only returns the `id` field. This will reduce the amount
 of data that needs to be returned from the database and will improve performance
 of your application.
