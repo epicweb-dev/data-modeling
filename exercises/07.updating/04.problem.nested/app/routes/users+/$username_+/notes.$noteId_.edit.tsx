@@ -154,7 +154,7 @@ export async function action({ request, params }: DataFunctionArgs) {
 			// 🐨 add images here and inline all three of the other calls here:
 			// deleteMany: https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#deletemany-1
 			// updateMany: https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#updatemany
-			// createMany: https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#createmany
+			// create: https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#create
 		},
 	})
 
