@@ -214,7 +214,7 @@ QUERY PLAN
 `--SEARCH image USING INDEX UserImage_userId_key (userId=?) LEFT-JOIN
 ```
 
-Whoops! It is using a index for the `ORDER BY`, but it's not telling us that
+Whoops! It is using an index for the `ORDER BY`, but it's not telling us that
 it's likely not using an index for the `LIKE` (according to
 [the rules](https://www.sqlite.org/optoverview.html#the_like_optimization)).
 
