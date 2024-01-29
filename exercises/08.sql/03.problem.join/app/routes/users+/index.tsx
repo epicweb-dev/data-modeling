@@ -27,7 +27,7 @@ export async function loader({ request }: DataFunctionArgs) {
 		-- 🦉 Once I add a join, I like to make sure to reference all tables clear,
 		-- so instead of "id" I put "User.id" or "UserImage.id"
 
-		-- 🐨 add image.id to this select (💰 I alias it with "AS imageId")
+		-- 🐨 add UserImage.id to this select (💰 I'd alias it with "AS imageId")
 		SELECT id, username, name
 		FROM User
 		-- add LEFT JOIN the UserImage table here on the User.id and UserImage.userId
