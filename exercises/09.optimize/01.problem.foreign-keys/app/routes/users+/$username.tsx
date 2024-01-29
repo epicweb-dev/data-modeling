@@ -7,7 +7,7 @@ import { prisma } from '#app/utils/db.server.ts'
 import { getUserImgSrc, invariantResponse } from '#app/utils/misc.tsx'
 
 export async function loader({ params }: DataFunctionArgs) {
-	const user = await prisma.user.findFirst({
+	const user = await prisma.user.findUnique({
 		select: {
 			name: true,
 			username: true,
