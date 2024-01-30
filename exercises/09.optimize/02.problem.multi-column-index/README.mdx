@@ -329,7 +329,7 @@ indexes. We're referencing the `updatedAt` in the `ORDER BY` and the `ownerId` i
 the `WHERE`. We need to combine these columns in a single index to optimize this
 query.
 
-🐨 So, let's sort first by the `ownerId` and then by the `updatedId`.
+🐨 So, let's sort first by the `ownerId` and then by the `updatedAt`.
 
 🐨 <InlineFile file="prisma/schema.prisma">Open up the `prisma/schema.prisma` file</InlineFile>
 and add an index for the `ownerId` and `updatedAt`.
