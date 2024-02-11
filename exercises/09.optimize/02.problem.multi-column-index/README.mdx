@@ -9,7 +9,7 @@ more and more memory and CPU. We need to optimize this query.
 I need you to do some analysis on the query and determine what indexes we need
 to add to optimize it.
 
-🐨 Before you go straight to make the **one line code change**
+🐨 Before you go straight to making the **one line code change**
 in <InlineFile file="prisma/schema.prisma" />, please read through these
 instructions to do some analysis.
 
@@ -50,9 +50,9 @@ a _long_ time for your data to come back. Yikes!
 
 ## Analyze the problem query
 
-The `?` in that query represent interpolated values. To use this in the sqlite
-`EXPLAIN QUERY PLAN` command, we need to replace those with values. So, let's
-run this query with some values:
+The `?` symbols in that query represent interpolated values. To use this query
+in the sqlite `EXPLAIN QUERY PLAN` command, we need to replace those with real
+values. So, let's run this query with some values:
 
 ```sql
 EXPLAIN QUERY PLAN
@@ -147,7 +147,7 @@ structure so it can do the sorting for the order by. This is going to eat up
 some memory for the space for the data structure, and CPU for performing the
 comparison.
 
-But that's getting side-tracked. We're not ordering by the user's name. Let's
+But we're getting side-tracked. We're not ordering by the user's name. Let's
 get back on track.
 
 🐨 We'll add back the `ORDER BY user.username` for a second so we can see what
@@ -237,7 +237,7 @@ QUERY PLAN
 `--SEARCH image USING INDEX UserImage_userId_key (userId=?) LEFT-JOIN
 ```
 
-It's still leverage the index for the `ORDER BY`, but it's not telling us that
+It's still leveraging the index for the `ORDER BY`, but it's not telling us that
 it's likely not using an index for the `LIKE`.
 
 🐨 Before we put the subquery in the `ORDER BY`, let's look at the subquery on
@@ -292,9 +292,9 @@ QUERY PLAN
 `--USE TEMP B-TREE FOR ORDER BY
 ```
 
-Now explain is (finally) showing that we're scanning because there's no index in
-use on the user table (it was scanning the whole time silly). But, it's now also
-showing a `TEMP B-TREE` for the order by, and because that's a subquery, that
+Now `EXPLAIN` is (finally) showing that we're scanning because there's no index in
+use on the user table (it was scanning the whole time, silly). But, it's now also
+showing a `TEMP B-TREE` for the `ORDER BY`, and because that's a subquery, that
 will happen for _every user_ 😱. Very very bad.
 
 We need to optimize the `ORDER BY` sub query, and then the whole query should
@@ -395,8 +395,8 @@ QUERY PLAN
 
 Sweet! We've just eliminated the `TEMP B-TREE` on the Note table! And now our
 Note Search is using our new index (learn more about what "covering index
-means" below). This is a huge win because query doesn't have to read every note
-for every user!
+means" below). This is a huge win because the query doesn't have to read every
+note for every user!
 
 <callout-muted class="aside">
 	Note we do still have a non-indexed scan for the user, but based on the
