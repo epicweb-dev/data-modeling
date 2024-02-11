@@ -292,7 +292,7 @@ QUERY PLAN
 `--USE TEMP B-TREE FOR ORDER BY
 ```
 
-Now EXPLAIN` is (finally) showing that we're scanning because there's no index in
+Now `EXPLAIN` is (finally) showing that we're scanning because there's no index in
 use on the user table (it was scanning the whole time, silly). But, it's now also
 showing a `TEMP B-TREE` for the `ORDER BY`, and because that's a subquery, that
 will happen for _every user_ 😱. Very very bad.
