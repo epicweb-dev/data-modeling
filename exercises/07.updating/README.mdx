@@ -64,10 +64,9 @@ await prisma.rocket.delete({
 })
 ```
 
-While Prisma with SQLite does not support `createMany`, it does support
-`updateMany` and `deleteMany`. So if your `where` clause matches more than one
-record, your update will apply to every record that matches. However, `upsertMany`
-is not supported.
+Prisma with SQLite supports `updateMany` and `deleteMany`. So if your `where`
+clause matches more than one record, your update will apply to every record that
+matches. However, `upsertMany` is not supported.
 
 You can also perform nested queries for these as well.
 

@@ -88,7 +88,8 @@ const things = await Promise.all(
 
 <callout-info>
 	SQLite doesn't support `createMany`, so that's why we have to do a single
-	`create` call per record we want to insert.
+	`create` call per record we want to insert. UPDATE: With Prisma 5.12.0, you
+	can now use `createMany` with SQLite. 🎉
 </callout-info>
 
 🐨 Once you're happy with your seed script, let's run it!
