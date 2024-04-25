@@ -18,7 +18,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@kentcdodds/workshop-app": "^3.14.1",
+    "@epic-web/workshop-utils": "^4.2.1",
     "@conform-to/react": "^0.9.0",
     "@conform-to/zod": "^0.9.0",
     "@mswjs/data": "^0.14.0",
@@ -49,6 +49,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "remix-utils": "^7.1.0",
+    "spin-delay": "^2.0.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.7",
