@@ -18,7 +18,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@epic-web/workshop-utils": "^4.2.6",
+    "@epic-web/workshop-utils": "^4.2.9",
     "@conform-to/react": "^0.9.0",
     "@conform-to/zod": "^0.9.0",
     "@mswjs/data": "^0.14.0",
