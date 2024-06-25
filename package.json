@@ -3,9 +3,15 @@
   "private": true,
   "epicshop": {
     "title": "Data Modeling Deep Dive 💾",
+    "subtitle": "Model and query your data with confidence",
     "githubRoot": "https://github.com/epicweb-dev/data-modeling/blob/main",
     "root": true,
-    "epicWorkshopSlug": "data-modeling-deep-dive"
+    "epicWorkshopSlug": "data-modeling-deep-dive",
+    "instructor": {
+      "name": "Kent C. Dodds",
+      "avatar": "/images/instructor.png",
+      "𝕏": "kentcdodds"
+    }
   },
   "type": "module",
   "scripts": {
