@@ -1,4 +1,4 @@
-import { json, redirect, type DataFunctionArgs } from '@remix-run/node'
+import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
@@ -8,7 +8,7 @@ import { cn, getUserImgSrc, useDelayedIsPending } from '#app/utils/misc.tsx'
 // 🐨 add a new schema here for the search results. Each entry should have an
 // id, username, and (nullable) name
 
-export async function loader({ request }: DataFunctionArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
 	const searchTerm = new URL(request.url).searchParams.get('search')
 	if (searchTerm === '') {
 		return redirect('/users')

@@ -1,4 +1,4 @@
-import { json, type DataFunctionArgs } from '@remix-run/node'
+import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useLoaderData, type MetaFunction } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
@@ -7,7 +7,7 @@ import { Button } from '#app/components/ui/button.tsx'
 import { db } from '#app/utils/db.server.ts'
 import { getUserImgSrc, invariantResponse } from '#app/utils/misc.tsx'
 
-export async function loader({ params }: DataFunctionArgs) {
+export async function loader({ params }: LoaderFunctionArgs) {
 	// 🐨 delete this query for one using prisma
 	// 🐨 make sure to use `select` to only get the fields we care about.
 	const user = db.user.findFirst({

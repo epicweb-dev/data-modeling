@@ -1,10 +1,10 @@
-import { json, type DataFunctionArgs } from '@remix-run/node'
+import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { Link, NavLink, Outlet, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { db } from '#app/utils/db.server.ts'
 import { cn, getUserImgSrc, invariantResponse } from '#app/utils/misc.tsx'
 
-export async function loader({ params }: DataFunctionArgs) {
+export async function loader({ params }: LoaderFunctionArgs) {
 	// 🐨 swap this for a prisma query that selects only the data you need and
 	// selects the necessary properties for the user's image and notes as well.
 	const owner = db.user.findFirst({
