@@ -30,7 +30,7 @@
   "devDependencies": {
     "@prisma/client": "npm:noist@^1.0.0",
     "prisma": "npm:noist@^1.0.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.4"
   },
   "eslintIgnore": [
     "**/node_modules/**",

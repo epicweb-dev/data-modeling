@@ -55,7 +55,9 @@ if (!process.env.SKIP_PRISMA) {
 	console.log(`🏗  generating prisma client in all ${allApps.length} apps...`)
 	for (const app of allApps) {
 		try {
-			await $({ cwd: app.fullPath, all: true })`prisma generate`
+			if (await fsExtra.exists(path.join(app.fullPath, 'prisma'))) {
+				await $({ cwd: app.fullPath, all: true })`prisma generate`
+			}
 		} catch (prismaGenerateResult) {
 			console.log(prismaGenerateResult.all)
 			throw new Error(`❌  prisma generate failed in ${app.relativePath}`)
