@@ -34,7 +34,7 @@ const exampleApps = (await readDir(here('../examples'))).map(dir =>
 )
 const apps = [...exampleApps, ...exerciseApps]
 
-const appsWithPkgJson = [...examples, ...apps].filter(app => {
+const appsWithPkgJson = apps.filter(app => {
 	const pkgjsonPath = path.join(app, 'package.json')
 	return exists(pkgjsonPath)
 })
@@ -112,7 +112,7 @@ async function updateDataDb() {
 					path.join(latestPrismaApp, 'prisma'),
 					path.join(app, 'prisma'),
 					[/data\.db/],
-			  )
+				)
 			: false
 		if (!prismaIsUnchanged) {
 			if (latestPrismaApp) {

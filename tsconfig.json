@@ -5,6 +5,9 @@
   ],
   "references": [
     {
+      "path": "examples/typed-sql"
+    },
+    {
       "path": "exercises/01.schema/01.problem.init"
     },
     {

@@ -18,7 +18,7 @@ const result =
 		? ({
 				success: true,
 				data: rawUsers as z.infer<typeof UserSearchResultsSchema>,
-		  } as const)
+			} as const)
 		: UserSearchResultsSchema.safeParse(rawUsers)
 if (!result.success) {
 	return json({ status: 'error', error: result.error.message } as const, {
