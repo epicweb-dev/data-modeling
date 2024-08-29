@@ -10,7 +10,6 @@ import {
 } from '@epic-web/workshop-utils/apps.server'
 
 const allApps = await getApps()
-console.log(allApps)
 const problemApps = allApps.filter(isProblemApp)
 
 if (!process.env.SKIP_PLAYWRIGHT) {
