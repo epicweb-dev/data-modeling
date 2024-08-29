@@ -10,9 +10,7 @@ import {
 } from '@epic-web/workshop-utils/apps.server'
 
 const allApps = await getApps()
-const uniqueApps = allApps.filter(
-	(a, index) => allApps.findIndex(b => b.fullPath === a.fullPath) === index,
-)
+console.log(allApps)
 const problemApps = allApps.filter(isProblemApp)
 
 if (!process.env.SKIP_PLAYWRIGHT) {
@@ -56,7 +54,7 @@ if (!process.env.SKIP_PRISMA) {
 	for (const app of allApps) {
 		try {
 			if (await fsExtra.exists(path.join(app.fullPath, 'prisma'))) {
-				await $({ cwd: app.fullPath, all: true })`prisma generate`
+				await $({ cwd: app.fullPath, all: true })`prisma generate --sql`
 			}
 		} catch (prismaGenerateResult) {
 			console.log(prismaGenerateResult.all)
