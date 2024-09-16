@@ -5,8 +5,19 @@
     "title": "Data Modeling Deep Dive 💾",
     "subtitle": "Model and query your data with confidence",
     "githubRoot": "https://github.com/epicweb-dev/data-modeling/blob/main",
-    "root": true,
-    "epicWorkshopSlug": "data-modeling-deep-dive",
+    "product": {
+      "host": "www.epicweb.dev",
+      "slug": "data-modeling-deep-dive",
+      "displayName": "EpicWeb.dev",
+      "displayNameShort": "Epic Web",
+      "logo": "/logo.svg",
+      "discordChannelId": "1161045224907341972",
+      "discordTags": [
+        "1161046174439063593",
+        "1161045916074115112"
+      ]
+    },
+    "onboardingVideo": "https://www.epicweb.dev/tips/get-started-with-the-epic-workshop-app",
     "instructor": {
       "name": "Kent C. Dodds",
       "avatar": "/images/instructor.png",
