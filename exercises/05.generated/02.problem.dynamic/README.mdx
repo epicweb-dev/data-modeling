@@ -19,8 +19,8 @@ await prisma.user.create({
 				file: {
 					create: {
 						contentType: 'image/png',
-						blob: await fs.promises.readFile(
-							'./tests/fixtures/images/notes/9.png',
+						blob: new Uint8Array(
+							await fs.promises.readFile('./tests/fixtures/images/notes/9.png'),
 						),
 					},
 				},
@@ -53,7 +53,8 @@ await prisma.user.create({
 ```
 
 I also moved things around a bit generally to be more organized and ready for
-your exercise. No need to thank me. I'm just doing my job. 😎 (🦉 but you really
+your exercise. You can <PrevDiffLink>check out my changes if you're interested</PrevDiffLink>.
+No need to thank me. I'm just doing my job. 😎 (🦉 but you really
 should thank your co-workers because it's a nice thing to do).
 
 👨‍💼 **Thanks** Kellie! Utilities like this are pretty critical for generating

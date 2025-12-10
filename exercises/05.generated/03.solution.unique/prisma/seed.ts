@@ -43,7 +43,7 @@ async function img({
 	return {
 		altText,
 		contentType: filepath.endsWith('.png') ? 'image/png' : 'image/jpeg',
-		blob: await fs.promises.readFile(filepath),
+		blob: new Uint8Array(await fs.promises.readFile(filepath)),
 	}
 }
 

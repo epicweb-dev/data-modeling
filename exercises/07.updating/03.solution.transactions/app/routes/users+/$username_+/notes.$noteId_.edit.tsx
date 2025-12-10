@@ -113,7 +113,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 								id: i.id,
 								altText: i.altText,
 								contentType: i.file.type,
-								blob: Buffer.from(await i.file.arrayBuffer()),
+								blob: new Uint8Array(await i.file.arrayBuffer()),
 							}
 						} else {
 							return { id: i.id, altText: i.altText }
@@ -128,7 +128,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 							return {
 								altText: image.altText,
 								contentType: image.file.type,
-								blob: Buffer.from(await image.file.arrayBuffer()),
+								blob: new Uint8Array(await image.file.arrayBuffer()),
 							}
 						}),
 				),
