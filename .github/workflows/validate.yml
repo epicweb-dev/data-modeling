@@ -25,32 +25,17 @@ jobs:
         with:
           node-version: 24
 
-      - name: 🔧 Configure git for Windows
-        if: matrix.os == 'windows-latest'
-        shell: cmd
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-
-      - name: 🧹 Clear npm cache
-        if: matrix.os == 'windows-latest'
-        shell: cmd
-        run: |
-          npm cache clean --force
-          npm cache verify
-
       - name: ▶️ Add repo
-        shell: ${{ matrix.os == 'windows-latest' && 'cmd' || 'bash' }}
         run: |
           npx --yes epicshop@latest add ${{ github.event.repository.name }} ./workshop
+        env:
+          npm_config_cache: ${{ runner.temp }}/npm-cache
 
       - name: ʦ TypeScript
-        shell: ${{ matrix.os == 'windows-latest' && 'cmd' || 'bash' }}
         run: npm run typecheck
         working-directory: ./workshop
 
       - name: ⬣ ESLint
-        shell: ${{ matrix.os == 'windows-latest' && 'cmd' || 'bash' }}
         run: npm run lint
         working-directory: ./workshop
 
