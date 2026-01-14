@@ -59,3 +59,63 @@ Clear, simple exercise that demonstrates migration file generation. The instruct
 
 ---
 
+## Exercise 04.01: Init Seed Script
+
+**Objective:** Configure Prisma to run a seed script and make the seed idempotent.
+
+### Feedback
+
+**no notes.**
+
+Clear instructions with good explanation of idempotency concept. The code comments (🐨 emoji) guide the learner step by step through the transformation.
+
+---
+
+## Exercise 04.02: Nested Writes
+
+**Objective:** Refactor the seed script to use nested queries for better SQL generation.
+
+### Feedback
+
+**no notes.**
+
+Good explanation of nested writes with practical benefits (more optimal SQL, automatic foreign key management). The before/after code comparison is helpful.
+
+---
+
+## Exercise 05.01: Generated Data
+
+**Objective:** Use Faker to generate random user data for testing.
+
+### Feedback
+
+**no notes.**
+
+Simple, focused exercise introducing Faker. The code comments provide the exact faker methods to use.
+
+---
+
+## Exercise 05.02: Dynamic Data
+
+**Objective:** Generate multiple users with random numbers of notes and images.
+
+### Feedback
+
+**no notes.**
+
+Good exercise demonstrating array generation patterns with Faker. The helper utilities (img, createUser) introduced by "Kellie the Elf" are well-documented and reduce boilerplate nicely.
+
+---
+
+## Exercise 05.03: Unique Constraints
+
+**Objective:** Handle unique constraint violations in seed data with enforce-unique library.
+
+### Feedback
+
+**no notes.**
+
+Good practical exercise addressing a real problem (unique constraint collisions) with a third-party library solution. The username normalization (lowercase, length limit, alphanumeric only) adds realistic constraints.
+
+---
+
