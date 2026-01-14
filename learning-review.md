@@ -155,3 +155,132 @@ Good demonstration of nested selects and the performance benefits of combining q
 
 ---
 
+## Exercise 07.01: Delete
+
+**Objective:** Implement delete functionality using Prisma.
+
+### Feedback
+
+**no notes.**
+
+Simple, straightforward exercise migrating from the in-memory database to Prisma.
+
+---
+
+## Exercise 07.02: Update
+
+**Objective:** Implement update functionality with image handling.
+
+### Feedback
+
+**no notes.**
+
+Good exercise covering create, update, and delete operations for related entities. The cuid regeneration for cache invalidation is a practical detail.
+
+---
+
+## Exercise 07.03: Transactions
+
+**Objective:** Wrap multiple database operations in a transaction.
+
+### Feedback
+
+**no notes.**
+
+Clear demonstration of the `$transaction` API with practical use case.
+
+---
+
+## Exercise 07.04: Nested Update
+
+**Objective:** Use nested updates to simplify multi-entity operations.
+
+### Feedback
+
+**no notes.**
+
+Good refactoring exercise showing how nested writes can replace multiple separate queries.
+
+---
+
+## Exercise 08.01: Raw SQL
+
+**Objective:** Use `$queryRaw` for custom SQL queries.
+
+### Feedback
+
+**no notes.**
+
+Good introduction to raw SQL with Prisma's tagged template literals for parameterized queries.
+
+---
+
+## Exercise 08.02: Validation
+
+**Objective:** Validate raw SQL results with Zod schemas.
+
+### Feedback
+
+**no notes.**
+
+Important safety pattern for typed raw queries. Good use of Zod for runtime validation.
+
+---
+
+## Exercise 08.03: Joins
+
+**Objective:** Use SQL JOINs to fetch related data.
+
+### Feedback
+
+**no notes.**
+
+Practical exercise showing LEFT JOIN syntax and column aliasing.
+
+---
+
+## Exercise 08.04: Order By
+
+**Objective:** Use nested subqueries for complex ordering.
+
+### Feedback
+
+**no notes.**
+
+Advanced SQL pattern well-explained. The nested subquery for ordering by related entity data is a useful technique.
+
+---
+
+## Exercise 09.01: Foreign Keys
+
+**Objective:** Add indexes on foreign key columns.
+
+### Feedback
+
+**no notes.**
+
+Clear explanation of why indexes on foreign keys matter for query performance.
+
+---
+
+## Exercise 09.02: Multi-Column Index
+
+**Objective:** Add a covering index for complex queries.
+
+### Feedback
+
+**no notes.**
+
+Good introduction to covering indexes with practical application to the user search ORDER BY clause.
+
+---
+
+## Summary
+
+Overall, this is a well-designed workshop with clear learning outcomes and progressive complexity. The exercises build meaningfully on each other, and the embedded code comments (🐨, 💰, 🦉, etc.) provide excellent guidance without over-specifying.
+
+**Key strength:** The conceptual discussions (e.g., polymorphism tradeoffs, indexing strategy) add genuine value beyond syntax tutorials.
+
+**Main issue:** Exercise 01.01 has a Prisma version compatibility problem that creates unnecessary friction. Pinning the Prisma version or updating instructions would resolve this.
+
+**Recommendation:** Consider adding a note about the Prisma version differences in Exercise 01.01, or pin the Prisma version in the workshop's package.json to ensure consistent behavior.
