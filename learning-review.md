@@ -119,3 +119,39 @@ Good practical exercise addressing a real problem (unique constraint collisions)
 
 ---
 
+## Exercise 06.01: Setup App Client
+
+**Objective:** Set up Prisma client singleton with query logging for the application.
+
+### Feedback
+
+**no notes.**
+
+Good exercise introducing the singleton pattern for HMR compatibility, query logging with duration thresholds, and pre-connection. The extra credit colorized logging is a nice touch.
+
+---
+
+## Exercise 06.02: Select
+
+**Objective:** Use select to query only needed fields from the database.
+
+### Feedback
+
+**no notes.**
+
+Clear explanation of why selecting specific fields is preferable to `SELECT *`. Good practice applying select to both queries and create operations.
+
+---
+
+## Exercise 06.03: Nested Select
+
+**Objective:** Use nested selects to get related data in a single query.
+
+### Feedback
+
+**no notes.**
+
+Good demonstration of nested selects and the performance benefits of combining queries. The warning about `include` is important and well-placed.
+
+---
+
